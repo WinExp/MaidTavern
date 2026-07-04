@@ -1,30 +1,88 @@
-name: Build
+name: Build CI
 
-on: [push, pull_request]
+on:
+  workflow_dispatch:
+    inputs:
+      force_publish:
+        description: "Force publish"
+        required: false
+        type: boolean
+
+  push:
+    paths-ignore:
+      - 'docs/*'
+      - 'README*.md'
+      - 'CHANGELOG.md'
+      - 'LICENSE'
+      - '.gitattributes'
+      - '.gitignore'
+
+  pull_request:
+    paths-ignore:
+      - 'docs/*'
+      - 'README*.md'
+      - 'CHANGELOG.md'
+      - 'LICENSE'
+      - '.gitattributes'
+      - '.gitignore'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           fetch-tags: true
 
       - name: Setup JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
-      # This is needed to be able to run ./gradlew below
-      # You can run `git update-index --chmod +x gradlew` then remove this step.
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
         run: ./gradlew build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          path: |
+            fabric/build/libs
+            neoforge/build/libs
+
+      - name: Get version from current commit
+        id: current-version
+        run: |
+          VERSION=$(sed -nE 's/^mod_version[[:space:]]*=[[:space:]]*(.*)$/\1/p' gradle.properties)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get version from previous commit
+        id: previous-version
+        run: |
+          VERSION=$(git show ${{ github.event.before }}:gradle.properties | sed -nE 's/^mod_version[[:space:]]*=[[:space:]]*(.*)$/\1/p')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Compare versions
+        id: version-check
+        run: |
+          echo "Current version: ${{ steps.current-version.outputs.version }}"
+          echo "Previous version: ${{ steps.previous-version.outputs.version }}"
+          if [ "${{ steps.current-version.outputs.version }}" != "${{ steps.previous-version.outputs.version }}" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish mods
+        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.force_publish) || (github.event_name == 'push' && steps.version-check.outputs.changed == 'true') }}
+        run: ./gradlew modrinth && ./gradlew modrinthSyncBody
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
