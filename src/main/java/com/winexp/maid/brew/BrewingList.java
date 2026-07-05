@@ -28,10 +28,15 @@ public class BrewingList {
     }
 
     public @Nullable ResourceLocation pop() {
-        if (recipeIds.isEmpty()) return null;
+        if (isEmpty()) return null;
         ResourceLocation recipeId = recipeIds.removeFirst();
         recipeIds.addLast(recipeId);
         return recipeId;
+    }
+
+    public @Nullable ResourceLocation get() {
+        if (isEmpty()) return null;
+        return recipeIds.getFirst();
     }
 
     public void remove(ResourceLocation recipeId) {

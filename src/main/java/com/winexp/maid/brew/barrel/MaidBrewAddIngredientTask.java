@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableMap;
 import com.winexp.entity.MaidTavernEntities;
 import com.winexp.maid.IBrewTask;
 import com.winexp.maid.brew.BrewingSession;
+import com.winexp.util.ItemHandlerUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.Brain;
@@ -20,6 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.List;
 import java.util.Optional;
 
 public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
@@ -51,7 +53,9 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
         }
         BlockPos pos = targetPos.currentBlockPosition();
         IBarrel barrel = task.getBarrel(level, pos);
-        if (!task.isBarrelAvailable(maid, barrel)) {
+        BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).get();
+        if (!task.isBarrelAvailable(maid, barrel) || !task.hasRequiredMaterials(maid, session.recipeId())) {
+            brain.eraseMemory(InitEntities.TARGET_POS.get());
             clearSession(maid);
             return false;
         }
@@ -61,10 +65,12 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
     @Override
     protected boolean canStillUse(ServerLevel level, EntityMaid maid, long gameTime) {
         if (!maid.getBrain().hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())) return false;
-        PositionTracker targetPos = maid.getBrain().getMemory(InitEntities.TARGET_POS.get()).get();
+        Brain<EntityMaid> brain = maid.getBrain();
+        PositionTracker targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).get();
         BlockPos pos = targetPos.currentBlockPosition();
+        BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).get();
         IBarrel barrel = task.getBarrel(level, pos);
-        return task.isBarrelAvailable(maid, barrel);
+        return task.isBarrelAvailable(maid, barrel) && task.hasRequiredMaterials(maid, session.recipeId());
     }
 
     @Override
@@ -85,16 +91,20 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
             barrel.openLid(maid);
         } else if (!session.fluidPlaced().booleanValue()) {
             for (int i = 0; i < 4; i++) {
-                barrel.addFluid(maid, recipe.fluid().getBucket().getDefaultInstance());
+                barrel.addFluid(maid, ItemHandlerUtil.findStack(maid.getAvailableInv(true), stack ->
+                        stack.getItem() == recipe.fluid().getBucket()));
             }
             session.fluidPlaced().setTrue();
         } else if (!session.ingredientsPlaced().booleanValue()) {
             for (Ingredient ingredient : recipe.ingredients()) {
                 if (ingredient.isEmpty()) continue;
-                for (ItemStack stack : ingredient.getItems()) {
-                    if (stack.isEmpty()) continue;
-                    barrel.addIngredient(maid, stack.copyWithCount(16));
-                    break;
+                List<ItemStack> stacks = ItemHandlerUtil.findStacks(maid.getAvailableInv(true), ingredient, 16);
+                int count = 0;
+                for (ItemStack stack : stacks) {
+                    int beforeCount = stack.getCount();
+                    barrel.addIngredient(maid, stack);
+                    count += beforeCount - stack.getCount();
+                    if (count >= 16) break;
                 }
             }
             session.ingredientsPlaced().setTrue();

@@ -30,20 +30,23 @@ public class MaidBrewMoveToBarrelTask extends MaidMoveToBlockTask {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
-        if (!super.checkExtraStartConditions(level, maid) || maid.getBrain().hasMemoryValue(InitEntities.TARGET_POS.get())) return false;
         Brain<EntityMaid> brain = maid.getBrain();
-        return brain.hasMemoryValue(MaidTavernEntities.BREWING_LIST.get());
+        if (!super.checkExtraStartConditions(level, maid) || brain.hasMemoryValue(InitEntities.TARGET_POS.get())) return false;
+        if (brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())) return true;
+        BrewingList brewingList = brain.getMemory(MaidTavernEntities.BREWING_LIST.get()).orElse(null);
+        if (brewingList != null) {
+            return task.hasRequiredMaterials(maid, brewingList.get());
+        } else return false;
     }
 
     @Override
     protected void start(ServerLevel level, EntityMaid maid, long gameTimeIn) {
         Brain<EntityMaid> brain = maid.getBrain();
         BrewingList brewingList = brain.getMemory(MaidTavernEntities.BREWING_LIST.get()).get();
-        var brewingSession = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get());
-        if (brewingSession.isPresent()) {
-            ResourceLocation recipeId = brewingSession.get().recipeId();
-            if (maid.level().getRecipeManager().byKey(recipeId).isEmpty()) return;
-            BlockPos barrelPos = brewingSession.get().barrelPos();
+        BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).orElse(null);
+        if (session != null) {
+            if (maid.level().getRecipeManager().byKey(session.recipeId()).isEmpty()) return;
+            BlockPos barrelPos = session.barrelPos();
             IBarrel barrel = task.getBarrel(level, barrelPos);
             if (!task.isBarrelAvailable(maid, barrel)) {
                 brain.eraseMemory(MaidTavernEntities.BREWING_SESSION.get());
@@ -56,10 +59,6 @@ public class MaidBrewMoveToBarrelTask extends MaidMoveToBlockTask {
             var targetPos = brain.getMemory(InitEntities.TARGET_POS.get());
             if (targetPos.isPresent()) {
                 ResourceLocation recipeId = brewingList.pop();
-                if (maid.level().getRecipeManager().byKey(recipeId).isEmpty()) {
-                    brewingList.remove(recipeId);
-                    return;
-                }
                 brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), BrewingSession.create(recipeId, targetPos.get().currentBlockPosition()));
             }
         }
@@ -70,6 +69,7 @@ public class MaidBrewMoveToBarrelTask extends MaidMoveToBlockTask {
         IBarrel barrel = task.getBarrel(level, pos);
         Brain<EntityMaid> brain = maid.getBrain();
         var nearestEntities = brain.getMemory(MemoryModuleType.NEAREST_LIVING_ENTITIES);
+        // 酒桶占用检查，防止多个女仆使用同一酒桶
         if (nearestEntities.isPresent()) {
             for (LivingEntity entity : nearestEntities.get()) {
                 if (entity instanceof EntityMaid maid1
