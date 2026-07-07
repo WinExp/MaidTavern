@@ -4,7 +4,7 @@ import com.github.tartaricacid.touhoulittlemaid.entity.ai.brain.task.MaidMoveToB
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.winexp.entity.MaidTavernEntities;
-import com.winexp.maid.IBrewTask;
+import com.winexp.maid.brew.IBrewTask;
 import com.winexp.maid.brew.BrewingList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -37,21 +37,14 @@ public class MaidBrewMoveToStorageTask extends MaidMoveToBlockTask {
         boolean takeFlag = false;
         if (brewingList != null) {
             for (ResourceLocation recipeId : brewingList.getRecipes()) {
-                if (maid.level().getRecipeManager().byKey(recipeId).isEmpty()) {
-                    brewingList.remove(recipeId);
-                    continue;
-                }
                 if (!takeFlag && !task.hasRequiredMaterials(maid, recipeId, null)) {
                     takeFlag = true;
                 }
             }
-            if (brewingList.isEmpty()) {
-                brain.eraseMemory(MaidTavernEntities.BREWING_LIST.get());
-                return false;
-            }
         } else return false;
 
-        if (!super.checkExtraStartConditions(level, maid) || brain.hasMemoryValue(InitEntities.TARGET_POS.get())
+        if (!super.checkExtraStartConditions(level, maid)
+                || brain.hasMemoryValue(InitEntities.TARGET_POS.get())
                 || brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())
                 || !brain.hasMemoryValue(MaidTavernEntities.BREWING_LIST.get())) return false;
         return takeFlag || getToStoreStack(maid) != null;

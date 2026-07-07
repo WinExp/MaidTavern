@@ -1,9 +1,10 @@
-package com.winexp.maid;
+package com.winexp.maid.brew;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
 import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.BarrelBlock;
 import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.DrinkBlock;
+import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.TapBlock;
 import com.github.ysbbbbbb.kaleidoscopetavern.blockentity.brew.DrinkBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopetavern.crafting.recipe.BarrelRecipe;
 import com.github.ysbbbbbb.kaleidoscopetavern.init.ModBlocks;
@@ -13,18 +14,19 @@ import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import com.winexp.MaidTavernMod;
 import com.winexp.entity.MaidTavernEntities;
-import com.winexp.maid.brew.BrewingList;
-import com.winexp.maid.brew.BrewingSession;
 import com.winexp.maid.brew.barrel.MaidBrewAddIngredientTask;
 import com.winexp.maid.brew.barrel.MaidBrewMoveToBarrelTask;
 import com.winexp.maid.brew.bottle.MaidBrewMoveToBottleTask;
+import com.winexp.maid.brew.bottle.MaidBrewPlaceBottleTask;
 import com.winexp.maid.brew.bottle.MaidBrewTakeBottleTask;
+import com.winexp.maid.brew.common.MaidBrewPreCheckTask;
 import com.winexp.maid.brew.storage.MaidBrewMoveToStorageTask;
 import com.winexp.maid.brew.storage.MaidBrewTakeAndStoreTask;
 import com.winexp.mixin.BarrelBlockEntityAccessor;
 import com.winexp.util.ItemHandlerUtil;
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -68,12 +70,14 @@ public class TaskBrew implements IBrewTask {
     @Override
     public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(EntityMaid maid) {
         return Lists.newArrayList(
-                Pair.of(11, new MaidBrewMoveToStorageTask(this, 0.45f, 3)),
-                Pair.of(10, new MaidBrewTakeAndStoreTask(this)),
+                Pair.of(Integer.MAX_VALUE, new MaidBrewPreCheckTask()),
+                Pair.of(5, new MaidBrewMoveToStorageTask(this, 0.45f, 3)),
+                Pair.of(5, new MaidBrewTakeAndStoreTask(this)),
                 Pair.of(5, new MaidBrewMoveToBarrelTask(this, 0.45f, 3)),
                 Pair.of(5, new MaidBrewAddIngredientTask(this, 20)),
                 Pair.of(5, new MaidBrewMoveToBottleTask(this, 0.45f, 3)),
-                Pair.of(5, new MaidBrewTakeBottleTask(this))
+                Pair.of(5, new MaidBrewTakeBottleTask(this)),
+                Pair.of(5, new MaidBrewPlaceBottleTask(this))
         );
     }
 
@@ -89,7 +93,7 @@ public class TaskBrew implements IBrewTask {
 
     @Override
     public double getCloseEnoughDist() {
-        return 1;
+        return 2;
     }
 
     @Override
@@ -221,6 +225,24 @@ public class TaskBrew implements IBrewTask {
                 if (ItemStack.isSameItem(stack, result)
                         && Objects.equals(stack.get(ModDataComponents.BREW_LEVEL), IBarrel.BREWING_FINISHED)) return true;
             }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean shouldPlaceBottle(EntityMaid maid, BlockPos pos) {
+        BrewingList brewingList = maid.getBrain().getMemory(MaidTavernEntities.BREWING_LIST.get()).get();
+        BlockState state = maid.level().getBlockState(pos);
+        if (!ItemHandlerUtil.contains(maid.getAvailableInv(true), stack ->
+                stack.is(ModItems.EMPTY_BOTTLE)) || !state.isAir()) return false;
+        BlockState tapState = maid.level().getBlockState(pos.above());
+        if (!tapState.is(ModBlocks.TAP)) return false;
+        Direction tapFacing = tapState.getValue(TapBlock.FACING);
+        IBarrel barrel = getBarrel((ServerLevel) maid.level(), pos.relative(tapFacing.getOpposite()));
+        if (barrel == null || barrel.getRecipeId() == null
+                || barrel.getBrewLevel() != IBarrel.BREWING_FINISHED) return false;
+        for (ResourceLocation recipeId : brewingList.getRecipes()) {
+            if (Objects.equals(barrel.getRecipeId(), recipeId)) return true;
         }
         return false;
     }

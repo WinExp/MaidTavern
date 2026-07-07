@@ -23,7 +23,7 @@ public class ItemHandlerUtil {
         return ItemHandlerHelper.insertItemStacked(itemHandler, stack.copyWithCount(1), true).isEmpty();
     }
 
-    public static boolean hasItem(IItemHandler itemHandler, Predicate<ItemStack> predicate) {
+    public static boolean contains(IItemHandler itemHandler, Predicate<ItemStack> predicate) {
         return matchesCount(itemHandler, predicate, MinMaxBounds.Ints.atLeast(1));
     }
 

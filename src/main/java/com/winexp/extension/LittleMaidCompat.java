@@ -4,8 +4,8 @@ import com.github.tartaricacid.touhoulittlemaid.api.ILittleMaid;
 import com.github.tartaricacid.touhoulittlemaid.api.LittleMaidExtension;
 import com.github.tartaricacid.touhoulittlemaid.entity.ai.brain.ExtraMaidBrainManager;
 import com.github.tartaricacid.touhoulittlemaid.entity.task.TaskManager;
-import com.winexp.maid.TaskGrape;
-import com.winexp.maid.TaskBrew;
+import com.winexp.maid.grape.TaskGrape;
+import com.winexp.maid.brew.TaskBrew;
 
 @LittleMaidExtension
 public class LittleMaidCompat implements ILittleMaid {

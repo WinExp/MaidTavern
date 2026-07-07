@@ -5,7 +5,7 @@ import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.github.ysbbbbbb.kaleidoscopetavern.crafting.recipe.BarrelRecipe;
 import com.google.common.collect.ImmutableMap;
 import com.winexp.entity.MaidTavernEntities;
-import com.winexp.maid.IBrewTask;
+import com.winexp.maid.brew.IBrewTask;
 import com.winexp.maid.brew.BrewingList;
 import com.winexp.util.ItemHandlerUtil;
 import net.minecraft.core.BlockPos;
@@ -55,20 +55,20 @@ public class MaidBrewTakeAndStoreTask extends Behavior<EntityMaid> {
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
         toStoreStackCached = null;
         Brain<EntityMaid> brain = maid.getBrain();
+        if (brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())) return false;
         PositionTracker targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).get();
+        BlockPos pos = targetPos.currentBlockPosition();
+        if (!task.isStorageValid(maid, pos)) return false;
+
         Vec3 targetV3d = targetPos.currentPosition();
         if (maid.distanceToSqr(targetV3d) > Math.pow(task.getCloseEnoughDist(), 2)) {
             Optional<WalkTarget> walkTarget = brain.getMemory(MemoryModuleType.WALK_TARGET);
             if (walkTarget.isEmpty() || !walkTarget.get().getTarget().currentPosition().equals(targetV3d)) {
                 brain.eraseMemory(InitEntities.TARGET_POS.get());
-                brain.eraseMemory(MaidTavernEntities.BREWING_SESSION.get());
             }
             return false;
         }
-
-        if (brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())) return false;
-        BlockPos pos = targetPos.currentBlockPosition();
-        return task.isStorageValid(maid, pos);
+        return true;
     }
 
     @Override

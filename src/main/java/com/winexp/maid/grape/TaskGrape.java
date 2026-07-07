@@ -1,4 +1,4 @@
-package com.winexp.maid;
+package com.winexp.maid.grape;
 
 import com.github.tartaricacid.touhoulittlemaid.api.task.IFarmTask;
 import com.github.tartaricacid.touhoulittlemaid.entity.ai.brain.task.MaidFarmPlantTask;
@@ -9,7 +9,6 @@ import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
 import com.winexp.MaidTavernMod;
-import com.winexp.maid.grape.MaidGrapeMoveTask;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;

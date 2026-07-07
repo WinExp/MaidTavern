@@ -1,9 +1,8 @@
-package com.winexp.maid;
+package com.winexp.maid.brew;
 
 import com.github.tartaricacid.touhoulittlemaid.api.task.IMaidTask;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
-import com.winexp.maid.brew.BrewingSession;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -29,4 +28,6 @@ public interface IBrewTask extends IMaidTask {
     boolean isStorageValid(EntityMaid maid, BlockPos pos);
 
     boolean isBottleValid(EntityMaid maid, BlockPos pos);
+
+    boolean shouldPlaceBottle(EntityMaid maid, BlockPos pos);
 }

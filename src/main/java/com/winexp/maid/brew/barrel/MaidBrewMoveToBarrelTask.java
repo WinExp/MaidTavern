@@ -6,7 +6,7 @@ import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
 import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.BarrelBlock;
 import com.winexp.entity.MaidTavernEntities;
-import com.winexp.maid.IBrewTask;
+import com.winexp.maid.brew.IBrewTask;
 import com.winexp.maid.brew.BrewingList;
 import com.winexp.maid.brew.BrewingSession;
 import net.minecraft.core.BlockPos;
@@ -27,7 +27,7 @@ public class MaidBrewMoveToBarrelTask extends MaidMoveToBlockTask {
         super(movementSpeed, verticalSearchRange);
         this.task = task;
         this.movementSpeed = movementSpeed;
-        setMaxCheckRate(40);
+        setMaxCheckRate(60);
     }
 
     @Override

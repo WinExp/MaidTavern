@@ -6,7 +6,7 @@ import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
 import com.github.ysbbbbbb.kaleidoscopetavern.crafting.recipe.BarrelRecipe;
 import com.google.common.collect.ImmutableMap;
 import com.winexp.entity.MaidTavernEntities;
-import com.winexp.maid.IBrewTask;
+import com.winexp.maid.brew.IBrewTask;
 import com.winexp.maid.brew.BrewingSession;
 import com.winexp.util.ItemHandlerUtil;
 import net.minecraft.core.BlockPos;
@@ -14,12 +14,15 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
+import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
+import java.util.Optional;
 
 public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
     private final IBrewTask task;
@@ -39,16 +42,22 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
         Brain<EntityMaid> brain = maid.getBrain();
         PositionTracker targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).get();
-        Vec3 targetV3d = targetPos.currentPosition();
-        if (maid.distanceToSqr(targetV3d) > Math.pow(task.getCloseEnoughDist(), 2)) {
-            return false;
-        }
         BlockPos pos = targetPos.currentBlockPosition();
         IBarrel barrel = task.getBarrel(level, pos);
         BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).get();
         if (!task.isBarrelAvailable(maid, barrel) || !task.hasRequiredMaterials(maid, session.recipeId(), session)) {
             brain.eraseMemory(InitEntities.TARGET_POS.get());
             clearSession(maid);
+            return false;
+        }
+
+        Vec3 targetV3d = targetPos.currentPosition();
+        if (maid.distanceToSqr(targetV3d) > Math.pow(task.getCloseEnoughDist(), 2)) {
+            Optional<WalkTarget> walkTarget = brain.getMemory(MemoryModuleType.WALK_TARGET);
+            if (walkTarget.isEmpty() || !walkTarget.get().getTarget().currentPosition().equals(targetV3d)) {
+                brain.eraseMemory(InitEntities.TARGET_POS.get());
+                clearSession(maid);
+            }
             return false;
         }
         return true;
