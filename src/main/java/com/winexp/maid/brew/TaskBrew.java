@@ -1,6 +1,7 @@
 package com.winexp.maid.brew;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
+import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
 import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.BarrelBlock;
 import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.DrinkBlock;
@@ -47,6 +48,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 public class TaskBrew implements IBrewTask {
     private static final ResourceLocation UID = MaidTavernMod.asResource("brewing");
@@ -83,7 +85,7 @@ public class TaskBrew implements IBrewTask {
 
     @Override
     public boolean enableLookAndRandomWalk(EntityMaid maid) {
-        return !maid.getBrain().hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get());
+        return !maid.getBrain().hasMemoryValue(InitEntities.TARGET_POS.get());
     }
 
     @Override
@@ -121,6 +123,8 @@ public class TaskBrew implements IBrewTask {
     public boolean hasRequiredMaterials(EntityMaid maid, ResourceLocation recipeId, @Nullable BrewingSession session) {
         BarrelRecipe recipe = (BarrelRecipe) maid.level().getRecipeManager().byKey(recipeId).map(RecipeHolder::value).orElse(null);
         if (recipe == null) return false;
+        if (!ItemHandlerUtil.matchesCount(maid.getAvailableInv(true), stack ->
+                stack.is(ModItems.EMPTY_BOTTLE), MinMaxBounds.Ints.atLeast(1))) return false;
         if (session == null || session.fluidPlaced().isFalse()) {
             if (!ItemHandlerUtil.matchesCount(maid.getAvailableInv(true), stack ->
                     recipe.fluid().getBucket() == stack.getItem(), MinMaxBounds.Ints.atLeast(4))) return false;
@@ -139,10 +143,15 @@ public class TaskBrew implements IBrewTask {
         BarrelRecipe recipe = (BarrelRecipe) maid.level().getRecipeManager().byKey(recipeId).map(RecipeHolder::value).orElse(null);
         if (recipe == null) return false;
         IItemHandler maidInv = maid.getAvailableInv(true);
-        int fluidRequired = 4 - ItemHandlerUtil.countItems(maidInv, stack -> recipe.fluid().getBucket() == stack.getItem());
+        Predicate<ItemStack> bottlePredicate = stack -> stack.is(ModItems.EMPTY_BOTTLE);
+        int bottleRequired = 1 - ItemHandlerUtil.countItems(maidInv, bottlePredicate);
+        if (bottleRequired > 0) {
+            if (!ItemHandlerUtil.matchesCount(storage, bottlePredicate, MinMaxBounds.Ints.atLeast(bottleRequired))) return false;
+        }
+        Predicate<ItemStack> fluidPredicate = stack -> recipe.fluid().getBucket() == stack.getItem();
+        int fluidRequired = 4 - ItemHandlerUtil.countItems(maidInv, fluidPredicate);
         if (fluidRequired > 0) {
-            if (!ItemHandlerUtil.matchesCount(storage, stack ->
-                    recipe.fluid().getBucket() == stack.getItem(), MinMaxBounds.Ints.atLeast(fluidRequired))) return false;
+            if (!ItemHandlerUtil.matchesCount(storage, fluidPredicate, MinMaxBounds.Ints.atLeast(fluidRequired))) return false;
         }
         for (Ingredient ingredient : recipe.getIngredients()) {
             if (ingredient.isEmpty()) continue;

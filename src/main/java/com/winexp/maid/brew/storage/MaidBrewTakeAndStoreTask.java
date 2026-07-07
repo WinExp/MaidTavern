@@ -3,6 +3,7 @@ package com.winexp.maid.brew.storage;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.github.ysbbbbbb.kaleidoscopetavern.crafting.recipe.BarrelRecipe;
+import com.github.ysbbbbbb.kaleidoscopetavern.init.ModItems;
 import com.google.common.collect.ImmutableMap;
 import com.winexp.entity.MaidTavernEntities;
 import com.winexp.maid.brew.IBrewTask;
@@ -82,6 +83,14 @@ public class MaidBrewTakeAndStoreTask extends Behavior<EntityMaid> {
         for (ResourceLocation recipeId : brewingList.getRecipes()) {
             BarrelRecipe recipe = (BarrelRecipe) level.getRecipeManager().byKey(recipeId).map(RecipeHolder::value).orElse(null);
             if (recipe != null && task.hasRequiredMaterialsInStorage(maid, recipeId, storage)) {
+                Predicate<ItemStack> bottlePredicate = stack -> stack.is(ModItems.EMPTY_BOTTLE);
+                int bottleRequired = 1 - ItemHandlerUtil.countItems(maidInv, bottlePredicate);
+                if (bottleRequired > 0) {
+                    List<ItemStack> stacks = ItemHandlerUtil.findStacks(storage, bottlePredicate, bottleRequired);
+                    for (ItemStack stack : stacks) {
+                        ItemHandlerUtil.replaceStack(storage, stack, ItemHandlerHelper.insertItemStacked(maidInv, stack, false));
+                    }
+                }
                 Predicate<ItemStack> fluidPredicate = stack -> recipe.fluid().getBucket() == stack.getItem();
                 int fluidRequired = 4 - ItemHandlerUtil.countItems(maidInv, fluidPredicate);
                 if (fluidRequired > 0) {
