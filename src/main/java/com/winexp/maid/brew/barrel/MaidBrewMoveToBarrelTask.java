@@ -4,6 +4,7 @@ import com.github.tartaricacid.touhoulittlemaid.entity.ai.brain.task.MaidMoveToB
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
+import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.BarrelBlock;
 import com.winexp.entity.MaidTavernEntities;
 import com.winexp.maid.IBrewTask;
 import com.winexp.maid.brew.BrewingList;
@@ -16,13 +17,14 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class MaidBrewMoveToBarrelTask extends MaidMoveToBlockTask {
     private final IBrewTask task;
     private final float movementSpeed;
 
-    public MaidBrewMoveToBarrelTask(IBrewTask task, float movementSpeed) {
-        super(movementSpeed, 3);
+    public MaidBrewMoveToBarrelTask(IBrewTask task, float movementSpeed, int verticalSearchRange) {
+        super(movementSpeed, verticalSearchRange);
         this.task = task;
         this.movementSpeed = movementSpeed;
         setMaxCheckRate(40);
@@ -35,8 +37,14 @@ public class MaidBrewMoveToBarrelTask extends MaidMoveToBlockTask {
         if (brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())) return true;
         BrewingList brewingList = brain.getMemory(MaidTavernEntities.BREWING_LIST.get()).orElse(null);
         if (brewingList != null) {
-            return task.hasRequiredMaterials(maid, brewingList.get());
-        } else return false;
+            for (ResourceLocation recipeId : brewingList.getRecipes()) {
+                if (task.hasRequiredMaterials(maid, recipeId, null)) {
+                    brewingList.select(recipeId);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
@@ -58,7 +66,7 @@ public class MaidBrewMoveToBarrelTask extends MaidMoveToBlockTask {
             searchForDestination(level, maid);
             var targetPos = brain.getMemory(InitEntities.TARGET_POS.get());
             if (targetPos.isPresent()) {
-                ResourceLocation recipeId = brewingList.pop();
+                ResourceLocation recipeId = brewingList.get();
                 brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), BrewingSession.create(recipeId, targetPos.get().currentBlockPosition()));
             }
         }
@@ -66,6 +74,8 @@ public class MaidBrewMoveToBarrelTask extends MaidMoveToBlockTask {
 
     @Override
     protected boolean shouldMoveTo(ServerLevel level, EntityMaid maid, BlockPos pos) {
+        BlockPos.MutableBlockPos mutablePos = (BlockPos.MutableBlockPos) pos;
+        BlockState state = level.getBlockState(mutablePos);
         IBarrel barrel = task.getBarrel(level, pos);
         Brain<EntityMaid> brain = maid.getBrain();
         var nearestEntities = brain.getMemory(MemoryModuleType.NEAREST_LIVING_ENTITIES);
@@ -81,6 +91,10 @@ public class MaidBrewMoveToBarrelTask extends MaidMoveToBlockTask {
                 }
             }
         }
-        return task.isBarrelAvailable(maid, barrel);
+        if (task.isBarrelAvailable(maid, barrel)) {
+            mutablePos.set(BarrelBlock.getOriginPos(pos, state).above(2));
+            return true;
+        }
+        return false;
     }
 }

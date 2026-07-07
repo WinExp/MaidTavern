@@ -14,15 +14,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
-import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
-import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
-import java.util.Optional;
 
 public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
     private final IBrewTask task;
@@ -44,17 +41,12 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
         PositionTracker targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).get();
         Vec3 targetV3d = targetPos.currentPosition();
         if (maid.distanceToSqr(targetV3d) > Math.pow(task.getCloseEnoughDist(), 2)) {
-            Optional<WalkTarget> walkTarget = brain.getMemory(MemoryModuleType.WALK_TARGET);
-            if (walkTarget.isEmpty() || !walkTarget.get().getTarget().currentPosition().equals(targetV3d)) {
-                brain.eraseMemory(InitEntities.TARGET_POS.get());
-                clearSession(maid);
-            }
             return false;
         }
         BlockPos pos = targetPos.currentBlockPosition();
         IBarrel barrel = task.getBarrel(level, pos);
         BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).get();
-        if (!task.isBarrelAvailable(maid, barrel) || !task.hasRequiredMaterials(maid, session.recipeId())) {
+        if (!task.isBarrelAvailable(maid, barrel) || !task.hasRequiredMaterials(maid, session.recipeId(), session)) {
             brain.eraseMemory(InitEntities.TARGET_POS.get());
             clearSession(maid);
             return false;
@@ -70,7 +62,7 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
         BlockPos pos = targetPos.currentBlockPosition();
         BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).get();
         IBarrel barrel = task.getBarrel(level, pos);
-        return task.isBarrelAvailable(maid, barrel) && task.hasRequiredMaterials(maid, session.recipeId());
+        return task.isBarrelAvailable(maid, barrel) && task.hasRequiredMaterials(maid, session.recipeId(), session);
     }
 
     @Override
@@ -123,8 +115,6 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
     protected void stop(ServerLevel level, EntityMaid maid, long gameTime) {
         Brain<EntityMaid> brain = maid.getBrain();
         brain.eraseMemory(InitEntities.TARGET_POS.get());
-        brain.eraseMemory(MemoryModuleType.WALK_TARGET);
-        var session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get());
-        session.ifPresent(brewingSession -> clearSession(maid));
+        clearSession(maid);
     }
 }

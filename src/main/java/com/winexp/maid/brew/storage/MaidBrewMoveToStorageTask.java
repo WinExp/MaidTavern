@@ -17,8 +17,8 @@ public class MaidBrewMoveToStorageTask extends MaidMoveToBlockTask {
     private final IBrewTask task;
     private @Nullable ItemStack toStoreStackCached;
 
-    public MaidBrewMoveToStorageTask(IBrewTask task, float movementSpeed) {
-        super(movementSpeed);
+    public MaidBrewMoveToStorageTask(IBrewTask task, float movementSpeed, int verticalSearchRange) {
+        super(movementSpeed, verticalSearchRange);
         this.task = task;
     }
 
@@ -34,26 +34,26 @@ public class MaidBrewMoveToStorageTask extends MaidMoveToBlockTask {
         toStoreStackCached = null;
         Brain<EntityMaid> brain = maid.getBrain();
         BrewingList brewingList = brain.getMemory(MaidTavernEntities.BREWING_LIST.get()).orElse(null);
-        ResourceLocation recipeId = null;
+        boolean takeFlag = false;
         if (brewingList != null) {
-            while (!brewingList.isEmpty()) {
-                recipeId = brewingList.get();
+            for (ResourceLocation recipeId : brewingList.getRecipes()) {
                 if (maid.level().getRecipeManager().byKey(recipeId).isEmpty()) {
                     brewingList.remove(recipeId);
-                    recipeId = null;
                     continue;
                 }
-                break;
-            }
-            if (recipeId == null) {
-                if (brewingList.isEmpty()) {
-                    brain.eraseMemory(MaidTavernEntities.BREWING_LIST.get());
+                if (!takeFlag && !task.hasRequiredMaterials(maid, recipeId, null)) {
+                    takeFlag = true;
                 }
             }
+            if (brewingList.isEmpty()) {
+                brain.eraseMemory(MaidTavernEntities.BREWING_LIST.get());
+                return false;
+            }
         } else return false;
+
         if (!super.checkExtraStartConditions(level, maid) || brain.hasMemoryValue(InitEntities.TARGET_POS.get())
-                || brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())) return false;
-        boolean takeFlag = recipeId != null && !task.hasRequiredMaterials(maid, recipeId);
+                || brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())
+                || !brain.hasMemoryValue(MaidTavernEntities.BREWING_LIST.get())) return false;
         return takeFlag || getToStoreStack(maid) != null;
     }
 

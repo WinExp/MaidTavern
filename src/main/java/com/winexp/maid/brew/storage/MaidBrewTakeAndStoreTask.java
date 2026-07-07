@@ -61,9 +61,11 @@ public class MaidBrewTakeAndStoreTask extends Behavior<EntityMaid> {
             Optional<WalkTarget> walkTarget = brain.getMemory(MemoryModuleType.WALK_TARGET);
             if (walkTarget.isEmpty() || !walkTarget.get().getTarget().currentPosition().equals(targetV3d)) {
                 brain.eraseMemory(InitEntities.TARGET_POS.get());
+                brain.eraseMemory(MaidTavernEntities.BREWING_SESSION.get());
             }
             return false;
         }
+
         if (brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())) return false;
         BlockPos pos = targetPos.currentBlockPosition();
         return task.isStorageValid(maid, pos);
@@ -77,24 +79,25 @@ public class MaidBrewTakeAndStoreTask extends Behavior<EntityMaid> {
         IItemHandlerModifiable storage = new InvWrapper(container);
         IItemHandlerModifiable maidInv = maid.getAvailableInv(true);
         BrewingList brewingList = brain.getMemory(MaidTavernEntities.BREWING_LIST.get()).get();
-        ResourceLocation recipeId = brewingList.get();
-        BarrelRecipe recipe = (BarrelRecipe) level.getRecipeManager().byKey(recipeId).map(RecipeHolder::value).orElse(null);
-        if (recipe != null && task.hasRequiredMaterialsInStorage(maid, recipeId, storage)) {
-            Predicate<ItemStack> fluidPredicate = stack -> recipe.fluid().getBucket() == stack.getItem();
-            int fluidRequired = 4 - ItemHandlerUtil.countItems(maidInv, fluidPredicate);
-            if (fluidRequired > 0) {
-                List<ItemStack> stacks = ItemHandlerUtil.findStacks(storage, fluidPredicate, fluidRequired);
-                for (ItemStack stack : stacks) {
-                    ItemHandlerUtil.replaceStack(storage, stack, ItemHandlerHelper.insertItemStacked(maidInv, stack, false));
-                }
-            }
-            for (Ingredient ingredient : recipe.getIngredients()) {
-                if (ingredient.isEmpty()) continue;
-                int ingredientRequired = 16 - ItemHandlerUtil.countItems(maidInv, ingredient);
-                if (ingredientRequired > 0) {
-                    List<ItemStack> stacks = ItemHandlerUtil.findStacks(storage, ingredient, ingredientRequired);
+        for (ResourceLocation recipeId : brewingList.getRecipes()) {
+            BarrelRecipe recipe = (BarrelRecipe) level.getRecipeManager().byKey(recipeId).map(RecipeHolder::value).orElse(null);
+            if (recipe != null && task.hasRequiredMaterialsInStorage(maid, recipeId, storage)) {
+                Predicate<ItemStack> fluidPredicate = stack -> recipe.fluid().getBucket() == stack.getItem();
+                int fluidRequired = 4 - ItemHandlerUtil.countItems(maidInv, fluidPredicate);
+                if (fluidRequired > 0) {
+                    List<ItemStack> stacks = ItemHandlerUtil.findStacks(storage, fluidPredicate, fluidRequired);
                     for (ItemStack stack : stacks) {
                         ItemHandlerUtil.replaceStack(storage, stack, ItemHandlerHelper.insertItemStacked(maidInv, stack, false));
+                    }
+                }
+                for (Ingredient ingredient : recipe.getIngredients()) {
+                    if (ingredient.isEmpty()) continue;
+                    int ingredientRequired = 16 - ItemHandlerUtil.countItems(maidInv, ingredient);
+                    if (ingredientRequired > 0) {
+                        List<ItemStack> stacks = ItemHandlerUtil.findStacks(storage, ingredient, ingredientRequired);
+                        for (ItemStack stack : stacks) {
+                            ItemHandlerUtil.replaceStack(storage, stack, ItemHandlerHelper.insertItemStacked(maidInv, stack, false));
+                        }
                     }
                 }
             }

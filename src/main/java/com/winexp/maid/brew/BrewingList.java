@@ -29,8 +29,8 @@ public class BrewingList {
 
     public @Nullable ResourceLocation pop() {
         if (isEmpty()) return null;
-        ResourceLocation recipeId = recipeIds.removeFirst();
-        recipeIds.addLast(recipeId);
+        ResourceLocation recipeId = recipeIds.getFirst();
+        select(recipeId);
         return recipeId;
     }
 
@@ -39,8 +39,15 @@ public class BrewingList {
         return recipeIds.getFirst();
     }
 
-    public void remove(ResourceLocation recipeId) {
-        recipeIds.remove(recipeId);
+    public boolean select(ResourceLocation recipeId) {
+        if (isEmpty()) return false;
+        if (!recipeIds.remove(recipeId)) return false;
+        recipeIds.addFirst(recipeId);
+        return true;
+    }
+
+    public boolean remove(ResourceLocation recipeId) {
+        return recipeIds.remove(recipeId);
     }
 
     public List<ResourceLocation> getRecipes() {

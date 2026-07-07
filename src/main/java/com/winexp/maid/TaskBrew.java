@@ -3,16 +3,22 @@ package com.winexp.maid;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
 import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.BarrelBlock;
+import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.DrinkBlock;
+import com.github.ysbbbbbb.kaleidoscopetavern.blockentity.brew.DrinkBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopetavern.crafting.recipe.BarrelRecipe;
 import com.github.ysbbbbbb.kaleidoscopetavern.init.ModBlocks;
+import com.github.ysbbbbbb.kaleidoscopetavern.init.ModDataComponents;
 import com.github.ysbbbbbb.kaleidoscopetavern.init.ModItems;
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import com.winexp.MaidTavernMod;
 import com.winexp.entity.MaidTavernEntities;
 import com.winexp.maid.brew.BrewingList;
+import com.winexp.maid.brew.BrewingSession;
 import com.winexp.maid.brew.barrel.MaidBrewAddIngredientTask;
 import com.winexp.maid.brew.barrel.MaidBrewMoveToBarrelTask;
+import com.winexp.maid.brew.bottle.MaidBrewMoveToBottleTask;
+import com.winexp.maid.brew.bottle.MaidBrewTakeBottleTask;
 import com.winexp.maid.brew.storage.MaidBrewMoveToStorageTask;
 import com.winexp.maid.brew.storage.MaidBrewTakeAndStoreTask;
 import com.winexp.mixin.BarrelBlockEntityAccessor;
@@ -33,12 +39,12 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 public class TaskBrew implements IBrewTask {
     private static final ResourceLocation UID = MaidTavernMod.asResource("brewing");
@@ -62,16 +68,18 @@ public class TaskBrew implements IBrewTask {
     @Override
     public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(EntityMaid maid) {
         return Lists.newArrayList(
-                Pair.of(11, new MaidBrewMoveToStorageTask(this, 0.45f)),
+                Pair.of(11, new MaidBrewMoveToStorageTask(this, 0.45f, 3)),
                 Pair.of(10, new MaidBrewTakeAndStoreTask(this)),
-                Pair.of(5, new MaidBrewMoveToBarrelTask(this, 0.45f)),
-                Pair.of(5, new MaidBrewAddIngredientTask(this, 20))
+                Pair.of(5, new MaidBrewMoveToBarrelTask(this, 0.45f, 3)),
+                Pair.of(5, new MaidBrewAddIngredientTask(this, 20)),
+                Pair.of(5, new MaidBrewMoveToBottleTask(this, 0.45f, 3)),
+                Pair.of(5, new MaidBrewTakeBottleTask(this))
         );
     }
 
     @Override
     public boolean enableLookAndRandomWalk(EntityMaid maid) {
-        return true;
+        return !maid.getBrain().hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get());
     }
 
     @Override
@@ -87,40 +95,37 @@ public class TaskBrew implements IBrewTask {
     @Override
     public @Nullable IBarrel getBarrel(ServerLevel level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
-        if (!state.is(ModBlocks.BARREL) || state.getValue(BarrelBlock.LAYER) != AttachFace.CEILING || state.getValue(BarrelBlock.INDEX) != 4) return null;
-        return (IBarrel) level.getBlockEntity(pos.below(2));
-    }
-
-    @Override
-    public boolean isBarrelAvailable(@Nullable IBarrel barrel) {
-        return barrel != null && !barrel.isBrewing();
+        return BarrelBlock.getBarrelEntity(level, pos, state);
     }
 
     @Override
     public boolean isBarrelAvailable(EntityMaid maid, @Nullable IBarrel barrel) {
         Brain<EntityMaid> brain = maid.getBrain();
-        if (!isBarrelAvailable(barrel)) return false;
+        if (barrel == null || barrel.isBrewing()) return false;
         var brewingSession = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get());
         BarrelBlockEntityAccessor accessor = (BarrelBlockEntityAccessor) barrel;
-        if (brewingSession.isPresent()) {
-            if (brewingSession.get().fluidPlaced().isFalse()) {
-                return accessor.getFluidTank().isEmpty();
-            } else if (brewingSession.get().ingredientsPlaced().isFalse()) {
-                return ItemHandlerUtil.isEmpty(accessor.getIngredients());
-            } else return true;
+        if (brewingSession.isEmpty() || brewingSession.get().fluidPlaced().isFalse()) {
+            if (!accessor.getFluidTank().isEmpty()) return false;
         }
-        return accessor.getFluidTank().isEmpty() && ItemHandlerUtil.isEmpty(accessor.getIngredients());
+        if (brewingSession.isEmpty() || brewingSession.get().ingredientsPlaced().isFalse()) {
+            if (!ItemHandlerUtil.isEmpty(accessor.getIngredients())) return false;
+        }
+        return true;
     }
 
     @Override
-    public boolean hasRequiredMaterials(EntityMaid maid, ResourceLocation recipeId) {
+    public boolean hasRequiredMaterials(EntityMaid maid, ResourceLocation recipeId, @Nullable BrewingSession session) {
         BarrelRecipe recipe = (BarrelRecipe) maid.level().getRecipeManager().byKey(recipeId).map(RecipeHolder::value).orElse(null);
         if (recipe == null) return false;
-        if (!ItemHandlerUtil.matchesCount(maid.getAvailableInv(true), stack ->
-                recipe.fluid().getBucket() == stack.getItem(), MinMaxBounds.Ints.atLeast(4))) return false;
-        for (Ingredient ingredient : recipe.getIngredients()) {
-            if (ingredient.isEmpty()) continue;
-            if (!ItemHandlerUtil.matchesCount(maid.getAvailableInv(true), ingredient, MinMaxBounds.Ints.atLeast(16))) return false;
+        if (session == null || session.fluidPlaced().isFalse()) {
+            if (!ItemHandlerUtil.matchesCount(maid.getAvailableInv(true), stack ->
+                    recipe.fluid().getBucket() == stack.getItem(), MinMaxBounds.Ints.atLeast(4))) return false;
+        }
+        if (session == null || session.ingredientsPlaced().isFalse()) {
+            for (Ingredient ingredient : recipe.getIngredients()) {
+                if (ingredient.isEmpty()) continue;
+                if (!ItemHandlerUtil.matchesCount(maid.getAvailableInv(true), ingredient, MinMaxBounds.Ints.atLeast(16))) return false;
+            }
         }
         return true;
     }
@@ -178,9 +183,44 @@ public class TaskBrew implements IBrewTask {
             IItemHandler storage = new InvWrapper(container);
             ItemStack toStoreStack = getToStoreStack(maid);
             BrewingList brewingList = brain.getMemory(MaidTavernEntities.BREWING_LIST.get()).get();
-            boolean takeFlag = hasRequiredMaterialsInStorage(maid, brewingList.get(), storage);
-            boolean storeFlag = toStoreStack != null && !ItemHandlerUtil.canInsert(storage, toStoreStack);
+            boolean takeFlag = false;
+            for (ResourceLocation recipeId : brewingList.getRecipes()) {
+                if (hasRequiredMaterialsInStorage(maid, recipeId, storage)) {
+                    takeFlag = true;
+                    break;
+                }
+            }
+            boolean storeFlag = toStoreStack != null && ItemHandlerUtil.canInsert(storage, toStoreStack);
             return takeFlag || storeFlag;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isBottleValid(EntityMaid maid, BlockPos pos) {
+        if (pos == null) return false;
+        BlockState state = maid.level().getBlockState(pos);
+        BrewingList brewingList = maid.getBrain().getMemory(MaidTavernEntities.BREWING_LIST.get()).get();
+        if (!state.is(ModBlocks.MOLOTOV)
+                && !(state.getBlock() instanceof DrinkBlock)) return false;
+        if (!maid.level().getBlockState(pos.above()).is(ModBlocks.TAP)) return false;
+        if (state.is(ModBlocks.MOLOTOV)) {
+            for (ResourceLocation recipeId : brewingList.getRecipes()) {
+                BarrelRecipe recipe = (BarrelRecipe) maid.level().getRecipeManager().byKey(recipeId).map(RecipeHolder::value).get();
+                ItemStack result = recipe.getResultItem(maid.level().registryAccess());
+                if (result.is(ModItems.MOLOTOV)) return true;
+            }
+        } else if (state.getBlock() instanceof DrinkBlock drinkBlock
+                && state.getValue(drinkBlock.getCountProperty()) == 1) {
+            DrinkBlockEntity drink = (DrinkBlockEntity) maid.level().getBlockEntity(pos);
+            if (drink.getItems().isEmpty()) return false;
+            ItemStack stack = drink.getItems().getFirst();
+            for (ResourceLocation recipeId : brewingList.getRecipes()) {
+                BarrelRecipe recipe = (BarrelRecipe) maid.level().getRecipeManager().byKey(recipeId).map(RecipeHolder::value).get();
+                ItemStack result = recipe.getResultItem(maid.level().registryAccess());
+                if (ItemStack.isSameItem(stack, result)
+                        && Objects.equals(stack.get(ModDataComponents.BREW_LEVEL), IBarrel.BREWING_FINISHED)) return true;
+            }
         }
         return false;
     }
