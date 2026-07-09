@@ -1,4 +1,6 @@
 # Maid Harvest Grape
-This is a Touhou little maid addon which adds a maid task makes maids can harvest grapes in Kaleidoscope: Tavern.
+This is a Touhou little maid add-on that adds some interesting Kaleidoscope: Tavern’s compatibility features.
 
-![Task](https://raw.githubusercontent.com/WinExp/MaidHarvestGrape/HEAD/docs/images/task.png)
+![Grape Task](https://raw.githubusercontent.com/WinExp/MaidHarvestGrape/HEAD/docs/images/grape_task.png)
+
+![Brewing Task](https://raw.githubusercontent.com/WinExp/MaidHarvestGrape/HEAD/docs/images/brewing_task.png)
