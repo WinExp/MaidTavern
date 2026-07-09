@@ -1,6 +1,5 @@
 package com.winexp.maid.grape;
 
-import com.github.tartaricacid.touhoulittlemaid.api.task.IFarmTask;
 import com.github.tartaricacid.touhoulittlemaid.entity.ai.brain.task.MaidFarmPlantTask;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.ysbbbbbb.kaleidoscopetavern.block.plant.GrapeCropBlock;
@@ -19,16 +18,18 @@ import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-public class TaskGrape implements IFarmTask {
-    public static final int GRAPE_HEIGHT = 3;
+public class TaskGrape implements IGrapeTask {
+    public static final int MAX_GRAPE_HEIGHT = 3;
     private static final UUID FAKE_PLAYER_UUID = UUID.randomUUID();
     private static final ResourceLocation UID = MaidTavernMod.asResource("grape");
     private static final ItemStack ICON = ModItems.GRAPE.toStack();
@@ -44,13 +45,20 @@ public class TaskGrape implements IFarmTask {
     }
 
     @Override
-    public boolean isSeed(ItemStack stack) {
-        return false;
+    public @Nullable BlockPos getGrapePos(Level level, BlockPos pos) {
+        for (int i = 0; i < MAX_GRAPE_HEIGHT; i++) {
+            BlockPos grapePos = pos.above(i);
+            if (level.getBlockState(grapePos).getBlock() instanceof GrapeCropBlock) {
+                return grapePos;
+            }
+        }
+        return null;
     }
 
     @Override
     public boolean canHarvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
-        cropPos = cropPos.above(GRAPE_HEIGHT - 1);
+        cropPos = getGrapePos(maid.level(), cropPos);
+        if (cropPos == null) return false;
         cropState = maid.level().getBlockState(cropPos);
         boolean result = cropState.getBlock() instanceof GrapeCropBlock && cropState.getValue(GrapeCropBlock.AGE) == GrapeCropBlock.MAX_AGE;
         if (result) {
@@ -61,7 +69,7 @@ public class TaskGrape implements IFarmTask {
 
     @Override
     public void harvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
-        cropPos = cropPos.above(GRAPE_HEIGHT - 1);
+        cropPos = getGrapePos(maid.level(), cropPos);
         cropState = maid.level().getBlockState(cropPos);
         ItemStack shears = maid.getMainHandItem();
         if (shears.is(Tags.Items.TOOLS_SHEAR)) {
@@ -71,26 +79,6 @@ public class TaskGrape implements IFarmTask {
             ((GrapeCropBlock) cropState.getBlock()).useItemOn(shears, cropState, level, cropPos, fakePlayer, InteractionHand.MAIN_HAND, null);
             level.playSound(null, cropPos, SoundEvents.BEEHIVE_SHEAR, SoundSource.BLOCKS, 1, 1);
         } else maid.destroyBlock(cropPos);
-    }
-
-    @Override
-    public boolean canPlant(EntityMaid maid, BlockPos basePos, BlockState baseState, ItemStack seed) {
-        return false;
-    }
-
-    @Override
-    public ItemStack plant(EntityMaid maid, BlockPos basePos, BlockState baseState, ItemStack seed) {
-        return seed;
-    }
-
-    @Override
-    public double getCloseEnoughDist() {
-        return 1;
-    }
-
-    @Override
-    public boolean checkCropPosAbove() {
-        return false;
     }
 
     @Override

@@ -6,6 +6,7 @@ import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.TapBlock;
 import com.winexp.entity.MaidTavernEntities;
 import com.winexp.maid.brew.IBrewTask;
+import com.winexp.util.MaidUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -52,6 +53,6 @@ public class MaidBrewMoveToBottleTask extends MaidMoveToBlockTask {
         BlockPos.MutableBlockPos mutablePos = (BlockPos.MutableBlockPos) pos;
         tapFacing = tapState.getValue(TapBlock.FACING);
         mutablePos.move(tapFacing);
-        return true;
+        return !MaidUtils.isTargetOccupied(maid, pos);
     }
 }

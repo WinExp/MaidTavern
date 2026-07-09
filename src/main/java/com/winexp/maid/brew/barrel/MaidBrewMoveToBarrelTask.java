@@ -9,14 +9,13 @@ import com.winexp.entity.MaidTavernEntities;
 import com.winexp.maid.brew.BrewingList;
 import com.winexp.maid.brew.BrewingSession;
 import com.winexp.maid.brew.IBrewTask;
+import com.winexp.util.MaidUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
-import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class MaidBrewMoveToBarrelTask extends MaidMoveToBlockTask {
@@ -74,24 +73,8 @@ public class MaidBrewMoveToBarrelTask extends MaidMoveToBlockTask {
         BlockPos.MutableBlockPos mutablePos = (BlockPos.MutableBlockPos) pos;
         BlockState state = level.getBlockState(mutablePos);
         IBarrel barrel = task.getBarrel(level, pos);
-        Brain<EntityMaid> brain = maid.getBrain();
-        var nearestEntities = brain.getMemory(MemoryModuleType.NEAREST_LIVING_ENTITIES);
-        // 酒桶占用检查，防止多个女仆使用同一酒桶
-        if (nearestEntities.isPresent()) {
-            for (LivingEntity entity : nearestEntities.get()) {
-                if (entity instanceof EntityMaid maid1
-                        && maid1.getBrain().hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())) {
-                    var maid1Target = maid1.getBrain().getMemory(InitEntities.TARGET_POS.get());
-                    if (maid1Target.isPresent() && maid1Target.get().currentBlockPosition().equals(pos)) {
-                        return false;
-                    }
-                }
-            }
-        }
-        if (task.isBarrelAvailable(maid, barrel)) {
-            mutablePos.set(BarrelBlock.getOriginPos(pos, state).above(2));
-            return true;
-        }
-        return false;
+        if (!task.isBarrelAvailable(maid, barrel)) return false;
+        mutablePos.set(BarrelBlock.getOriginPos(pos, state).above(2));
+        return !MaidUtils.isTargetOccupied(maid, pos);
     }
 }
