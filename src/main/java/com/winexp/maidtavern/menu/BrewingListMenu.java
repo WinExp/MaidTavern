@@ -1,5 +1,6 @@
 package com.winexp.maidtavern.menu;
 
+import com.winexp.maidtavern.item.MaidTavernItems;
 import com.winexp.maidtavern.maid.brew.BrewingList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
@@ -34,7 +35,7 @@ public class BrewingListMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return true;
+        return player.getItemInHand(hand).is(MaidTavernItems.BREWING_LIST);
     }
 
     public int getRows() {
