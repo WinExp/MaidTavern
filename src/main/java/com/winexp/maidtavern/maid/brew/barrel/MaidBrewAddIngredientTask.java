@@ -49,7 +49,7 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
         BlockPos pos = targetPos.currentBlockPosition();
         IBarrel barrel = task.getBarrel(level, pos);
         BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).get();
-        if (!task.isBarrelAvailable(maid, barrel) || !task.hasRequiredMaterials(maid, session.recipeId())) {
+        if (!task.isBarrelValid(maid, barrel) || !task.hasIngredients(maid, session.recipeId())) {
             brain.eraseMemory(InitEntities.TARGET_POS.get());
             clearSession(maid);
             return false;
@@ -76,7 +76,7 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
         BlockPos pos = targetPos.currentBlockPosition();
         BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).get();
         IBarrel barrel = task.getBarrel(level, pos);
-        if (!task.isBarrelAvailable(maid, barrel) || !task.hasRequiredMaterials(maid, session.recipeId())) {
+        if (!task.isBarrelValid(maid, barrel) || !task.hasIngredients(maid, session.recipeId())) {
             clearSession(maid);
             return false;
         }

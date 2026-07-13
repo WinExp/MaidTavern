@@ -29,6 +29,10 @@ public class BrewingList {
         this(List.of());
     }
 
+    public BrewingList(BrewingList brewingList) {
+        this(brewingList.recipeIds);
+    }
+
     public BrewingList(List<ResourceLocation> recipes) {
         for (ResourceLocation recipeId : recipes) {
             if (!recipeIds.contains(recipeId)) {

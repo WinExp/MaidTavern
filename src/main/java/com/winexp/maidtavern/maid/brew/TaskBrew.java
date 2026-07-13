@@ -105,7 +105,7 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
     }
 
     @Override
-    public boolean isBarrelAvailable(EntityMaid maid, @Nullable IBarrel barrel) {
+    public boolean isBarrelValid(EntityMaid maid, @Nullable IBarrel barrel) {
         Brain<EntityMaid> brain = maid.getBrain();
         if (barrel == null || barrel.isBrewing()) return false;
         var brewingSession = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get());
@@ -120,7 +120,7 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
     }
 
     @Override
-    public boolean hasRequiredMaterials(EntityMaid maid, ResourceLocation recipeId) {
+    public boolean hasIngredients(EntityMaid maid, ResourceLocation recipeId) {
         BrewingSession session = maid.getBrain().getMemory(MaidTavernEntities.BREWING_SESSION.get()).orElse(null);
         BarrelRecipe recipe = (BarrelRecipe) maid.level().getRecipeManager().byKey(recipeId).map(RecipeHolder::value).orElse(null);
         IItemHandler maidInv = maid.getAvailableInv(true);
@@ -152,7 +152,7 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
         if (brewingList == null) return false;
         ResourceLocation recipeId = brewingList.get();
         return !ItemHandlerUtil.contains(maid.getAvailableInv(true), stack ->
-                stack.is(ModItems.EMPTY_BOTTLE)) || !hasRequiredMaterials(maid, recipeId);
+                stack.is(ModItems.EMPTY_BOTTLE)) || !hasIngredients(maid, recipeId);
     }
 
     @Override

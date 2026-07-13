@@ -18,9 +18,9 @@ public interface IBrewTask extends IMaidTask {
     @Nullable IBarrel getBarrel(Level level, BlockPos pos);
 
     @Contract("_, null -> false")
-    boolean isBarrelAvailable(EntityMaid maid, @Nullable IBarrel barrel);
+    boolean isBarrelValid(EntityMaid maid, @Nullable IBarrel barrel);
 
-    boolean hasRequiredMaterials(EntityMaid maid, ResourceLocation recipeId);
+    boolean hasIngredients(EntityMaid maid, ResourceLocation recipeId);
 
     boolean shouldTake(EntityMaid maid);
 

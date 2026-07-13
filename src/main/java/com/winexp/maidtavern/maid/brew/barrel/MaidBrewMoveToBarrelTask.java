@@ -40,7 +40,7 @@ public class MaidBrewMoveToBarrelTask extends MaidSurroundingMoveTask {
         if (brewingList != null) {
             brewingList.shuffle();
             for (ResourceLocation recipeId : brewingList.getRecipes()) {
-                if (task.hasRequiredMaterials(maid, recipeId)) {
+                if (task.hasIngredients(maid, recipeId)) {
                     brewingList.select(recipeId);
                     return true;
                 }
@@ -58,7 +58,7 @@ public class MaidBrewMoveToBarrelTask extends MaidSurroundingMoveTask {
             if (maid.level().getRecipeManager().byKey(session.recipeId()).isEmpty()) return;
             BlockPos barrelPos = session.barrelPos();
             IBarrel barrel = task.getBarrel(level, barrelPos);
-            if (!task.isBarrelAvailable(maid, barrel)) {
+            if (!task.isBarrelValid(maid, barrel)) {
                 brain.eraseMemory(MaidTavernEntities.BREWING_SESSION.get());
                 return;
             }
@@ -79,7 +79,7 @@ public class MaidBrewMoveToBarrelTask extends MaidSurroundingMoveTask {
         BlockPos.MutableBlockPos mutablePos = (BlockPos.MutableBlockPos) pos;
         BlockState state = level.getBlockState(mutablePos);
         IBarrel barrel = task.getBarrel(level, pos);
-        if (!task.isBarrelAvailable(maid, barrel)) return false;
+        if (!task.isBarrelValid(maid, barrel)) return false;
         mutablePos.set(BarrelBlock.getOriginPos(pos, state).above(2));
         return !MaidUtils.isTargetOccupied(maid, pos);
     }

@@ -60,6 +60,8 @@ public class BrewingListItem extends Item implements MenuProvider, MaidInteracti
     public @Nullable AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
         InteractionHand hand = player.getUsedItemHand();
         ItemStack stack = player.getItemInHand(hand);
-        return new BrewingListMenu(containerId, inventory, hand, stack.getOrDefault(MaidTavernItems.BREWING_LIST_DATA.get(), new BrewingList()));
+        BrewingList brewingList = stack.getOrDefault(MaidTavernItems.BREWING_LIST_DATA.get(), new BrewingList());
+        brewingList = new BrewingList(brewingList);
+        return new BrewingListMenu(containerId, inventory, hand, brewingList);
     }
 }

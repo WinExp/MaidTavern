@@ -36,7 +36,7 @@ public class BrewingListGhostSlotHandler implements IGhostIngredientHandler<Brew
                     @Override
                     public void accept(I ingredient) {
                         menu.brewingList.add(recipeId);
-                        gui.getMenu().updateSlots();
+                        menu.sendList();
                     }
                 }
         );
