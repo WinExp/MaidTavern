@@ -54,10 +54,8 @@ public class BrewingListMenu extends AbstractContainerMenu {
     }
 
     private void onSlotEmptied(GhostSlot slot, ItemStack prevStack) {
-        if (!prevStack.isEmpty()) {
-            brewingList.remove(slot.getContainerSlot());
-            updateSlots();
-        }
+        brewingList.remove(slot.getContainerSlot());
+        updateSlots();
     }
 
     public void updateSlots() {

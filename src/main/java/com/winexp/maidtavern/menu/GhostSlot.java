@@ -23,9 +23,9 @@ public class GhostSlot extends Slot {
     @Override
     public Optional<ItemStack> tryRemove(int count, int decrement, Player player) {
         Optional<ItemStack> result = super.tryRemove(count, decrement, player);
-        if (getItem().isEmpty()) {
+        if (getItem().isEmpty() && result.isPresent()) {
             for (SlotEmptiedListener listener : this.listeners) {
-                listener.onSlotEmptied(this, result.orElse(ItemStack.EMPTY));
+                listener.onSlotEmptied(this, result.get());
             }
         }
         return Optional.empty();
