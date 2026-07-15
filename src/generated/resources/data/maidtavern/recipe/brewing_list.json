@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:paper"
+    },
+    {
+      "item": "minecraft:feather"
+    },
+    [
+      {
+        "item": "kaleidoscope_tavern:grape"
+      },
+      {
+        "item": "kaleidoscope_tavern:ice_grape"
+      },
+      {
+        "item": "kaleidoscope_tavern:gold_grape"
+      },
+      {
+        "item": "kaleidoscope_tavern:green_grape"
+      }
+    ]
+  ],
+  "result": {
+    "count": 1,
+    "id": "maidtavern:brewing_list"
+  }
+}

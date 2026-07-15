@@ -1,0 +1,37 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_grape": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "kaleidoscope_tavern:grape",
+              "kaleidoscope_tavern:ice_grape",
+              "kaleidoscope_tavern:gold_grape",
+              "kaleidoscope_tavern:green_grape"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "maidtavern:brewing_list"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_grape"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "maidtavern:brewing_list"
+    ]
+  }
+}

@@ -26,6 +26,7 @@ import com.winexp.maidtavern.maid.brew.storage.MaidBrewMoveToStorageTask;
 import com.winexp.maidtavern.maid.brew.storage.MaidBrewTakeAndStoreTask;
 import com.winexp.maidtavern.maid.task.IMaidTaskExt;
 import com.winexp.maidtavern.mixin.BarrelBlockEntityAccessor;
+import com.winexp.maidtavern.tag.MaidTavernItemTags;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.core.BlockPos;
@@ -37,7 +38,6 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
@@ -236,7 +236,7 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
             BarrelRecipe recipe = (BarrelRecipe) maid.level().getRecipeManager().byKey(recipeId).map(RecipeHolder::value).get();
             ItemStack resultItem = recipe.getResultItem(maid.level().registryAccess());
             List<ItemStack> foundStacks = ItemHandlerUtil.findStacks(maid.getAvailableInv(false), stack ->
-                    ItemStack.isSameItem(stack, resultItem) || stack.is(Items.BUCKET));
+                    ItemStack.isSameItem(stack, resultItem) || stack.is(MaidTavernItemTags.MAID_STORE_WHEN_BREWING));
             if (!foundStacks.isEmpty()) {
                 return foundStacks;
             }

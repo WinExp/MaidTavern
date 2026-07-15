@@ -6,8 +6,8 @@ import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
-public class MaidTavernItemModelProvider extends ItemModelProvider {
-    public MaidTavernItemModelProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
+public class ItemModelGeneration extends ItemModelProvider {
+    public ItemModelGeneration(PackOutput output, ExistingFileHelper existingFileHelper) {
         super(output, MaidTavern.MOD_ID, existingFileHelper);
     }
 
