@@ -49,6 +49,10 @@ public class BrewingList {
         return recipeIds.isEmpty();
     }
 
+    public boolean contains(ResourceLocation recipeId) {
+        return recipeIds.contains(recipeId);
+    }
+
     public void shuffle() {
         if (isEmpty()) return;
         Collections.shuffle(recipeIds);

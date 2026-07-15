@@ -8,6 +8,7 @@ import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.DrinkBlock;
 import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.TapBlock;
 import com.github.ysbbbbbb.kaleidoscopetavern.blockentity.brew.DrinkBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopetavern.crafting.recipe.BarrelRecipe;
+import com.github.ysbbbbbb.kaleidoscopetavern.game.tap.TapBehaviorManager;
 import com.github.ysbbbbbb.kaleidoscopetavern.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopetavern.init.ModDataComponents;
 import com.github.ysbbbbbb.kaleidoscopetavern.init.ModItems;
@@ -34,6 +35,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -89,13 +91,18 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
     }
 
     @Override
+    public boolean enableEating(EntityMaid maid) {
+        return !maid.getBrain().hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get());
+    }
+
+    @Override
     public boolean enableStealEdible(EntityMaid maid) {
         return !maid.getBrain().hasMemoryValue(InitEntities.TARGET_POS.get());
     }
 
     @Override
-    public boolean enableEating(EntityMaid maid) {
-        return !maid.getBrain().hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get());
+    public boolean shouldPickupGaveItem(EntityMaid maid, ItemEntity itemEntity) {
+        return true;
     }
 
     @Override
@@ -256,7 +263,12 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
         if (brewingList == null) return false;
         if (!state.is(ModBlocks.MOLOTOV)
                 && !(state.getBlock() instanceof DrinkBlock)) return false;
-        if (!maid.level().getBlockState(pos.above()).is(ModBlocks.TAP)) return false;
+        BlockState tapState = maid.level().getBlockState(pos.above());
+        if (!tapState.is(ModBlocks.TAP)) return false;
+        Direction tapFacing = tapState.getValue(TapBlock.FACING);
+        BlockPos sourcePos = pos.above().relative(tapFacing.getOpposite());
+        BlockState sourceState = maid.level().getBlockState(sourcePos);
+        if (!TapBehaviorManager.contains(sourceState)) return false;
         if (state.is(ModBlocks.MOLOTOV)) {
             for (ResourceLocation recipeId : brewingList.getRecipes()) {
                 BarrelRecipe recipe = (BarrelRecipe) maid.level().getRecipeManager().byKey(recipeId).map(RecipeHolder::value).get();
@@ -287,7 +299,10 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
         BlockState tapState = maid.level().getBlockState(pos.above());
         if (!tapState.is(ModBlocks.TAP)) return false;
         Direction tapFacing = tapState.getValue(TapBlock.FACING);
-        IBarrel barrel = getBarrel(maid.level(), pos.relative(tapFacing.getOpposite()));
+        BlockPos sourcePos = pos.above().relative(tapFacing.getOpposite());
+        BlockState sourceState = maid.level().getBlockState(sourcePos);
+        if (!TapBehaviorManager.contains(sourceState)) return false;
+        IBarrel barrel = getBarrel(maid.level(), sourcePos);
         if (barrel == null || barrel.getRecipeId() == null
                 || barrel.getBrewLevel() != IBarrel.BREWING_FINISHED) return false;
         for (ResourceLocation recipeId : brewingList.getRecipes()) {
