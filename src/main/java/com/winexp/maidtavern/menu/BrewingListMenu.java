@@ -83,6 +83,7 @@ public class BrewingListMenu extends AbstractContainerMenu {
     }
 
     private void onSelectedSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess) {
+        if (!slot.isActive()) return;
         if (action == ClickAction.PRIMARY) {
             brewingList.remove(slot.getContainerSlot());
             updateSlots();
@@ -90,6 +91,7 @@ public class BrewingListMenu extends AbstractContainerMenu {
     }
 
     private void onRecipeSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess) {
+        if (!slot.isActive()) return;
         brewingList.add(allRecipes.get(slot.getContainerSlot()).id());
         updateSlots();
     }
