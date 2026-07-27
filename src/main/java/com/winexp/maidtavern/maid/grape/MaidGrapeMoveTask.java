@@ -22,7 +22,7 @@ public class MaidGrapeMoveTask extends MaidFarmMoveTask {
         if (maid.getBrain().hasMemoryValue(InitEntities.TARGET_POS.get())) {
             BlockPos pos = maid.getBrain().getMemory(InitEntities.TARGET_POS.get()).get().currentBlockPosition().above();
             maid.getBrain().setMemory(MemoryModuleType.LOOK_TARGET,
-                    new BlockPosTracker(task.getGrapePos(level, pos)));
+                    new BlockPosTracker(task.getGrapePos(maid, pos)));
         }
     }
 }

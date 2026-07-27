@@ -18,7 +18,6 @@ import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.util.FakePlayer;
@@ -29,7 +28,7 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 public class TaskGrape implements IGrapeTask {
-    public static final int MAX_GRAPE_HEIGHT = 3;
+    public static final int BASE_MAX_GRAPE_HEIGHT = 2;
     private static final UUID FAKE_PLAYER_UUID = UUID.randomUUID();
     private static final ResourceLocation UID = MaidTavern.asResource("grape");
     private static final ItemStack ICON = ModItems.GRAPE.toStack();
@@ -45,10 +44,15 @@ public class TaskGrape implements IGrapeTask {
     }
 
     @Override
-    public @Nullable BlockPos getGrapePos(Level level, BlockPos pos) {
-        for (int i = 0; i < MAX_GRAPE_HEIGHT; i++) {
+    public int getMaxGrapeHeight(EntityMaid maid) {
+        return BASE_MAX_GRAPE_HEIGHT + maid.getFavorabilityManager().getLevel();
+    }
+
+    @Override
+    public @Nullable BlockPos getGrapePos(EntityMaid maid, BlockPos pos) {
+        for (int i = 0; i < getMaxGrapeHeight(maid); i++) {
             BlockPos grapePos = pos.above(i);
-            if (level.getBlockState(grapePos).getBlock() instanceof GrapeCropBlock) {
+            if (maid.level().getBlockState(grapePos).getBlock() instanceof GrapeCropBlock) {
                 return grapePos;
             }
         }
@@ -57,7 +61,7 @@ public class TaskGrape implements IGrapeTask {
 
     @Override
     public boolean canHarvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
-        cropPos = getGrapePos(maid.level(), cropPos);
+        cropPos = getGrapePos(maid, cropPos);
         if (cropPos == null) return false;
         cropState = maid.level().getBlockState(cropPos);
         boolean result = cropState.getBlock() instanceof GrapeCropBlock && cropState.getValue(GrapeCropBlock.AGE) == GrapeCropBlock.MAX_AGE;
@@ -69,7 +73,7 @@ public class TaskGrape implements IGrapeTask {
 
     @Override
     public void harvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
-        cropPos = getGrapePos(maid.level(), cropPos);
+        cropPos = getGrapePos(maid, cropPos);
         cropState = maid.level().getBlockState(cropPos);
         ItemStack shears = maid.getMainHandItem();
         if (shears.canPerformAction(ItemAbilities.SHEARS_HARVEST)) {
