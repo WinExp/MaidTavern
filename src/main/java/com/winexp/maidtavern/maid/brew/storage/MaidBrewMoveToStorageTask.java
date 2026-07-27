@@ -20,7 +20,7 @@ public class MaidBrewMoveToStorageTask extends MaidSurroundingMoveTask {
     public MaidBrewMoveToStorageTask(IBrewTask task, float movementSpeed, int verticalSearchRange) {
         super(movementSpeed, verticalSearchRange);
         this.task = task;
-        setMaxCheckRate(40);
+        setMaxCheckRate(20);
         moveRange = new BoundingBox(-1, -2, -1, 1, 1, 1);
     }
 

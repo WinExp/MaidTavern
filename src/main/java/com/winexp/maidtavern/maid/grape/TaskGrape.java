@@ -20,7 +20,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,7 +72,7 @@ public class TaskGrape implements IGrapeTask {
         cropPos = getGrapePos(maid.level(), cropPos);
         cropState = maid.level().getBlockState(cropPos);
         ItemStack shears = maid.getMainHandItem();
-        if (shears.is(Tags.Items.TOOLS_SHEAR)) {
+        if (shears.canPerformAction(ItemAbilities.SHEARS_HARVEST)) {
             ServerLevel level = (ServerLevel) maid.level();
             FakePlayer fakePlayer = new FakePlayer(level, new GameProfile(FAKE_PLAYER_UUID, "Arm"));
             fakePlayer.getInventory().setItem(0, shears);
@@ -91,7 +91,7 @@ public class TaskGrape implements IGrapeTask {
     @Override
     public List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
         return Lists.newArrayList(
-                Pair.of("has_shears", maid1 -> maid1.getMainHandItem().is(Tags.Items.TOOLS_SHEAR))
+                Pair.of("has_shears", maid1 -> maid1.getMainHandItem().canPerformAction(ItemAbilities.SHEARS_HARVEST))
         );
     }
 }

@@ -7,13 +7,11 @@ import com.winexp.maidtavern.maid.brew.IBrewTask;
 import com.winexp.maidtavern.maid.task.MaidSurroundingMoveTask;
 import com.winexp.maidtavern.util.MaidUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.Brain;
 
 public class MaidBrewMoveToBottleTask extends MaidSurroundingMoveTask {
     private final IBrewTask task;
-    private Direction tapFacing;
 
     public MaidBrewMoveToBottleTask(IBrewTask task, float movementSpeed, int verticalSearchRange) {
         super(movementSpeed, verticalSearchRange);

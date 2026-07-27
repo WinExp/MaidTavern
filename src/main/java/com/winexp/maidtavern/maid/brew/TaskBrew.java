@@ -74,7 +74,7 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
     @Override
     public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(EntityMaid maid) {
         return Lists.newArrayList(
-                Pair.of(Integer.MAX_VALUE, new MaidBrewPreCheckTask()),
+                Pair.of(Integer.MIN_VALUE, new MaidBrewPreCheckTask()),
                 Pair.of(5, new MaidBrewMoveToStorageTask(this, 0.45f, 4)),
                 Pair.of(5, new MaidBrewStorageOperationTask(this, 3)),
                 Pair.of(5, new MaidBrewMoveToBarrelTask(this, 0.45f, 4)),
@@ -170,7 +170,7 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
         if (brewingList == null) return List.of();
         BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).orElse(null);
         ResourceLocation recipeId = brewingList.get();
-        BarrelRecipe recipe = (BarrelRecipe) maid.level().getRecipeManager().byKey(recipeId).map(RecipeHolder::value).orElse(null);
+        BarrelRecipe recipe = (BarrelRecipe) maid.level().getRecipeManager().byKey(recipeId).map(RecipeHolder::value).get();
         List<Pair<ItemStack, Integer>> baseResult = new ArrayList<>();
         Predicate<ItemStack> bottlePredicate = stack -> stack.is(ModItems.EMPTY_BOTTLE);
         int bottleRequired = ModItems.EMPTY_BOTTLE.get().getDefaultMaxStackSize() - ItemHandlerUtil.countItems(maidInv, bottlePredicate);

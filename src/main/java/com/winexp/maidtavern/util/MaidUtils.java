@@ -12,8 +12,9 @@ public class MaidUtils {
         if (nearestEntities.isPresent()) {
             for (LivingEntity entity : nearestEntities.get()) {
                 if (entity instanceof EntityMaid maid1) {
-                    var maid1Target = maid1.getBrain().getMemory(InitEntities.TARGET_POS.get()).get();
-                    if (maid1Target.currentBlockPosition().equals(pos)) {
+                    var maid1Target = maid1.getBrain().getMemory(InitEntities.TARGET_POS.get()).orElse(null);
+                    if (maid1Target == null) return false;
+                    else if (maid1Target.currentBlockPosition().equals(pos)) {
                         return true;
                     }
                 }

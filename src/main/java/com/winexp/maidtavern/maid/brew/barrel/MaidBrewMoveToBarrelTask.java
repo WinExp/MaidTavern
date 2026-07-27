@@ -27,7 +27,7 @@ public class MaidBrewMoveToBarrelTask extends MaidSurroundingMoveTask {
         super(movementSpeed, verticalSearchRange);
         this.task = task;
         this.movementSpeed = movementSpeed;
-        setMaxCheckRate(60);
+        setMaxCheckRate(20);
         moveRange = new BoundingBox(-2, -1, -2, 2, 1, 2);
     }
 
