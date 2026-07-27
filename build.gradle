@@ -29,6 +29,7 @@ modrinth {
         required.project "kaleidoscopetavern"
     }
     syncBodyFrom = file("README.md").text
+    changelog = file("CHANGELOG.md").text
 }
 
 sourceSets.main.resources {
