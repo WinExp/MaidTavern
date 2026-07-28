@@ -50,7 +50,6 @@ public class TaskGrape implements IGrapeTask {
 
     @Override
     public @Nullable BlockPos getGrapePos(EntityMaid maid, BlockPos pos) {
-        pos = pos.below();
         for (int i = 0; i < getMaxGrapeHeight(maid); i++) {
             BlockPos grapePos = pos.above(i);
             if (maid.level().getBlockState(grapePos).getBlock() instanceof GrapeCropBlock) {
@@ -62,19 +61,15 @@ public class TaskGrape implements IGrapeTask {
 
     @Override
     public boolean canHarvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
-        cropPos = getGrapePos(maid, cropPos);
+        cropPos = getGrapePos(maid, cropPos.below());
         if (cropPos == null) return false;
         cropState = maid.level().getBlockState(cropPos);
-        boolean result = cropState.getBlock() instanceof GrapeCropBlock && cropState.getValue(GrapeCropBlock.AGE) == GrapeCropBlock.MAX_AGE;
-        if (result) {
-            maid.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(cropPos));
-        }
-        return result;
+        return cropState.getBlock() instanceof GrapeCropBlock && cropState.getValue(GrapeCropBlock.AGE) == GrapeCropBlock.MAX_AGE;
     }
 
     @Override
     public void harvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
-        cropPos = getGrapePos(maid, cropPos);
+        cropPos = getGrapePos(maid, cropPos.below());
         cropState = maid.level().getBlockState(cropPos);
         ItemStack shears = maid.getMainHandItem();
         if (shears.canPerformAction(ToolActions.SHEARS_HARVEST)) {

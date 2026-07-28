@@ -20,7 +20,7 @@ public class MaidGrapeMoveTask extends MaidFarmMoveTask {
     protected void start(ServerLevel level, EntityMaid maid, long gameTimeIn) {
         super.start(level, maid, gameTimeIn);
         if (maid.getBrain().hasMemoryValue(InitEntities.TARGET_POS.get())) {
-            BlockPos pos = maid.getBrain().getMemory(InitEntities.TARGET_POS.get()).get().currentBlockPosition().above();
+            BlockPos pos = maid.getBrain().getMemory(InitEntities.TARGET_POS.get()).get().currentBlockPosition();
             maid.getBrain().setMemory(MemoryModuleType.LOOK_TARGET,
                     new BlockPosTracker(task.getGrapePos(maid, pos)));
         }
