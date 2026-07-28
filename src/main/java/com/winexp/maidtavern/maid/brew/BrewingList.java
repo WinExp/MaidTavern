@@ -2,9 +2,6 @@ package com.winexp.maidtavern.maid.brew;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,11 +14,6 @@ public class BrewingList {
     public static final Codec<BrewingList> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.listOf().fieldOf("recipes").forGetter(BrewingList::getRecipes)
     ).apply(instance, BrewingList::new));
-    public static final StreamCodec<ByteBuf, BrewingList> STREAM_CODEC = StreamCodec.composite(
-            ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()),
-            BrewingList::getRecipes,
-            BrewingList::new
-    );
 
     private final List<ResourceLocation> recipeIds = new LinkedList<>();
 
@@ -60,14 +52,14 @@ public class BrewingList {
 
     public @Nullable ResourceLocation pop() {
         if (isEmpty()) return null;
-        ResourceLocation recipeId = recipeIds.getFirst();
+        ResourceLocation recipeId = recipeIds.get(0);
         select(recipeId);
         return recipeId;
     }
 
     public @Nullable ResourceLocation get() {
         if (isEmpty()) return null;
-        return recipeIds.getFirst();
+        return recipeIds.get(0);
     }
 
     public @Nullable ResourceLocation get(int idx) {
@@ -79,7 +71,7 @@ public class BrewingList {
     public boolean select(ResourceLocation recipeId) {
         if (isEmpty()) return false;
         if (!recipeIds.remove(recipeId)) return false;
-        recipeIds.addFirst(recipeId);
+        recipeIds.add(0, recipeId);
         return true;
     }
 

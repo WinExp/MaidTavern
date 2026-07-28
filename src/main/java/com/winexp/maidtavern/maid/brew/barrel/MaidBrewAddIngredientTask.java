@@ -112,7 +112,7 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
                 for (ItemStack ingredientStack : ingredient.getItems()) {
                     if (ingredientStack.isEmpty()) continue;
                     List<ItemStack> stacks = ItemHandlerUtil.findStacks(maid.getAvailableInv(true), stack ->
-                            ItemStack.isSameItemSameComponents(stack, ingredientStack));
+                            ItemStack.isSameItemSameTags(stack, ingredientStack));
                     int count = 0;
                     List<ItemStack> addStacks = new ArrayList<>();
                     for (ItemStack stack : stacks) {

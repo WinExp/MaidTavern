@@ -5,7 +5,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Nullable;
@@ -19,7 +18,7 @@ public record BrewingSession(ResourceLocation recipeId, BlockPos barrelPos, Muta
     ).apply(instance, BrewingSession::create));
 
     public @Nullable BarrelRecipe getRecipe(RecipeManager manager) {
-        return (BarrelRecipe) manager.byKey(recipeId).map(RecipeHolder::value).orElse(null);
+        return (BarrelRecipe) manager.byKey(recipeId).orElse(null);
     }
 
     public static BrewingSession create(ResourceLocation recipeId, BlockPos barrelPos) {

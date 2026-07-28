@@ -23,7 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
+import net.minecraftforge.common.util.FakePlayer;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -51,7 +51,7 @@ public class MaidBrewPlaceBottleTask extends Behavior<EntityMaid> {
         BlockPos pos = targetPos.currentBlockPosition();
         if (!task.shouldPlaceBottle(maid, pos)) {
             BlockState tapState = level.getBlockState(pos.above());
-            if (!tapState.is(ModBlocks.TAP) || !tapState.getValue(TapBlock.OPEN)) {
+            if (!tapState.is(ModBlocks.TAP.get()) || !tapState.getValue(TapBlock.OPEN)) {
                 brain.eraseMemory(InitEntities.TARGET_POS.get());
             }
             return false;
@@ -73,13 +73,13 @@ public class MaidBrewPlaceBottleTask extends Behavior<EntityMaid> {
         Brain<EntityMaid> brain = maid.getBrain();
         BlockPos pos = brain.getMemory(InitEntities.TARGET_POS.get()).get().currentBlockPosition();
         ItemStack bottleStack = ItemHandlerUtil.findStack(maid.getAvailableInv(true), stack ->
-                stack.is(ModItems.EMPTY_BOTTLE));
+                stack.is(ModItems.EMPTY_BOTTLE.get()));
         level.setBlockAndUpdate(pos, ModBlocks.EMPTY_BOTTLE.get().defaultBlockState());
         level.playSound(null, pos, SoundType.STONE.getPlaceSound(), maid.getSoundSource(), 1.0f, 1.0f);
         bottleStack.shrink(1);
         BlockState tapState = level.getBlockState(pos.above());
         FakePlayer fakePlayer = new FakePlayer(level, new GameProfile(FAKE_PLAYER_UUID, "Arm"));
-        ((TapBlock) ModBlocks.TAP.get()).useItemOn(ItemStack.EMPTY, tapState, level, pos.above(), fakePlayer, InteractionHand.MAIN_HAND, null);
+        ((TapBlock) ModBlocks.TAP.get()).use(tapState, level, pos.above(), fakePlayer, InteractionHand.MAIN_HAND, null);
         maid.swing(InteractionHand.MAIN_HAND);
     }
 }

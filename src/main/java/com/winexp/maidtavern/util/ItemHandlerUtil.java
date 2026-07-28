@@ -2,9 +2,9 @@ package com.winexp.maidtavern.util;
 
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.ItemHandlerHelper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class ItemHandlerUtil {
-
-
     public static boolean isEmpty(IItemHandler itemHandler) {
         for (int i = 0; i < itemHandler.getSlots(); i++) {
             if (!itemHandler.getStackInSlot(i).isEmpty()) return false;

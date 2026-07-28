@@ -1,18 +1,18 @@
 package com.winexp.maidtavern.menu;
 
 import com.winexp.maidtavern.MaidTavern;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.MenuType;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraftforge.common.extensions.IForgeMenuType;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 
 public class MaidTavernMenuTypes {
-    private static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(BuiltInRegistries.MENU, MaidTavern.MOD_ID);
+    private static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MaidTavern.MOD_ID);
 
-    public static final DeferredHolder<MenuType<?>, MenuType<BrewingListMenu>> BREWING_LIST = MENU_TYPES.register("brewing_list", () ->
-            IMenuTypeExtension.create(BrewingListMenu::new));
+    public static final RegistryObject<MenuType<BrewingListMenu>> BREWING_LIST = MENU_TYPES.register("brewing_list", () ->
+            IForgeMenuType.create(BrewingListMenu::new));
 
     public static void register(IEventBus modEventBus) {
         MENU_TYPES.register(modEventBus);

@@ -19,8 +19,8 @@ import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.common.ItemAbilities;
-import net.neoforged.neoforge.common.util.FakePlayer;
+import net.minecraftforge.common.ToolActions;
+import net.minecraftforge.common.util.FakePlayer;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -31,7 +31,7 @@ public class TaskGrape implements IGrapeTask {
     public static final int BASE_MAX_GRAPE_HEIGHT = 2;
     private static final UUID FAKE_PLAYER_UUID = UUID.randomUUID();
     private static final ResourceLocation UID = MaidTavern.asResource("grape");
-    private static final ItemStack ICON = ModItems.GRAPE.toStack();
+    private static final ItemStack ICON = ModItems.GRAPE.get().getDefaultInstance();
 
     @Override
     public ResourceLocation getUid() {
@@ -50,6 +50,7 @@ public class TaskGrape implements IGrapeTask {
 
     @Override
     public @Nullable BlockPos getGrapePos(EntityMaid maid, BlockPos pos) {
+        pos = pos.below();
         for (int i = 0; i < getMaxGrapeHeight(maid); i++) {
             BlockPos grapePos = pos.above(i);
             if (maid.level().getBlockState(grapePos).getBlock() instanceof GrapeCropBlock) {
@@ -76,11 +77,11 @@ public class TaskGrape implements IGrapeTask {
         cropPos = getGrapePos(maid, cropPos);
         cropState = maid.level().getBlockState(cropPos);
         ItemStack shears = maid.getMainHandItem();
-        if (shears.canPerformAction(ItemAbilities.SHEARS_HARVEST)) {
+        if (shears.canPerformAction(ToolActions.SHEARS_HARVEST)) {
             ServerLevel level = (ServerLevel) maid.level();
             FakePlayer fakePlayer = new FakePlayer(level, new GameProfile(FAKE_PLAYER_UUID, "Arm"));
             fakePlayer.getInventory().setItem(0, shears);
-            ((GrapeCropBlock) cropState.getBlock()).useItemOn(shears, cropState, level, cropPos, fakePlayer, InteractionHand.MAIN_HAND, null);
+            ((GrapeCropBlock) cropState.getBlock()).use(cropState, level, cropPos, fakePlayer, InteractionHand.MAIN_HAND, null);
             level.playSound(null, cropPos, SoundEvents.BEEHIVE_SHEAR, SoundSource.BLOCKS, 1, 1);
         } else maid.destroyBlock(cropPos);
     }
@@ -95,7 +96,7 @@ public class TaskGrape implements IGrapeTask {
     @Override
     public List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
         return Lists.newArrayList(
-                Pair.of("has_shears", maid1 -> maid1.getMainHandItem().canPerformAction(ItemAbilities.SHEARS_HARVEST))
+                Pair.of("has_shears", maid1 -> maid1.getMainHandItem().canPerformAction(ToolActions.SHEARS_HARVEST))
         );
     }
 }

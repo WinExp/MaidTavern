@@ -1,11 +1,11 @@
 package com.winexp.maidtavern.event;
 
 import com.winexp.maidtavern.command.MaidTavernCommand;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
-@EventBusSubscriber
+@Mod.EventBusSubscriber
 public class RegisterCommands {
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event) {

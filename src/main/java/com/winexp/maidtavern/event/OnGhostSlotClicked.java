@@ -1,11 +1,11 @@
 package com.winexp.maidtavern.event;
 
 import com.winexp.maidtavern.menu.GhostSlot;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.ItemStackedOnOtherEvent;
+import net.minecraftforge.event.ItemStackedOnOtherEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
-@EventBusSubscriber
+@Mod.EventBusSubscriber
 public class OnGhostSlotClicked {
     @SubscribeEvent
     public static void onGhostSlotClicked(ItemStackedOnOtherEvent event) {

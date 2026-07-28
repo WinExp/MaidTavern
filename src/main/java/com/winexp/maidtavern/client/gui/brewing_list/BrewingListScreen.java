@@ -27,6 +27,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListMenu> 
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+        renderBackground(guiGraphics);
         guiGraphics.blit(LIST_LOCATION, (width - 384) / 2, (height - 384) / 2, 0, 0, 384, 384, 512, 512);
     }
 }

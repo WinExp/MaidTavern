@@ -1,10 +1,13 @@
 package com.winexp.maidtavern.menu;
 
 import com.github.ysbbbbbb.kaleidoscopetavern.crafting.recipe.BarrelRecipe;
-import com.github.ysbbbbbb.kaleidoscopetavern.init.ModRecipes;
+import com.mojang.datafixers.util.Pair;
+import com.winexp.maidtavern.client.gui.brewing_list.BrewingListScreen;
 import com.winexp.maidtavern.item.MaidTavernItems;
 import com.winexp.maidtavern.maid.brew.BrewingList;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -15,7 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
 
 import java.util.List;
 
@@ -30,12 +33,12 @@ public class BrewingListMenu extends AbstractContainerMenu {
     };
     public final SimpleContainer recipeItems;
     public BrewingList brewingList;
-    private final List<RecipeHolder<BarrelRecipe>> allRecipes;
+    private final List<Pair<ResourceLocation, BarrelRecipe>> allRecipes;
 
-    public BrewingListMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
+    public BrewingListMenu(int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
         this(containerId, playerInventory,
                 buf.readEnum(InteractionHand.class),
-                BrewingList.STREAM_CODEC.decode(buf)
+                new BrewingList()
         );
     }
 
@@ -57,7 +60,8 @@ public class BrewingListMenu extends AbstractContainerMenu {
                 addSlot(slot);
             }
         }
-        allRecipes = player.level().getRecipeManager().getAllRecipesFor(ModRecipes.BARREL_RECIPE);
+        RecipeManager manager = player.level().getRecipeManager();
+        allRecipes = manager.getRecipeIds().filter(id -> manager.byKey(id).orElse(null) instanceof BarrelRecipe).map(id -> new Pair<>(id, (BarrelRecipe) manager.byKey(id).get())).toList();
         recipeItems = new SimpleContainer(allRecipes.size()) {
             @Override
             public int getMaxStackSize() {
@@ -67,16 +71,16 @@ public class BrewingListMenu extends AbstractContainerMenu {
         for (int i = 0; i < allRecipes.size(); i++) {
             int row = i / getColumns();
             int col = i % getColumns();
-            BarrelRecipe recipe = allRecipes.get(i).value();
+            BarrelRecipe recipe = allRecipes.get(i).getSecond();
             GhostSlot slot = new GhostSlot(recipeItems, col + row * getColumns(),
                     106 + 18 * col, 9 + 18 * row) {
                 @Override
                 public boolean isActive() {
-                    return !brewingList.contains(allRecipes.get(getContainerSlot()).id());
+                    return !brewingList.contains(allRecipes.get(getContainerSlot()).getFirst());
                 }
             };
             slot.addListener(this::onRecipeSlotClicked);
-            slot.set(recipe.getResultItem(player.registryAccess()).copyWithCount(1));
+            slot.set(recipe.getResultItem(player.level().registryAccess()).copyWithCount(1));
             addSlot(slot);
         }
         updateSlots();
@@ -92,7 +96,7 @@ public class BrewingListMenu extends AbstractContainerMenu {
 
     private void onRecipeSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess) {
         if (!slot.isActive()) return;
-        brewingList.add(allRecipes.get(slot.getContainerSlot()).id());
+        brewingList.add(allRecipes.get(slot.getContainerSlot()).getFirst());
         updateSlots();
     }
 
@@ -100,8 +104,8 @@ public class BrewingListMenu extends AbstractContainerMenu {
         if (player instanceof ServerPlayer) {
             selectedItems.clearContent();
             for (ResourceLocation recipeId : brewingList.getRecipes()) {
-                BarrelRecipe recipe = (BarrelRecipe) player.level().getRecipeManager().byKey(recipeId).map(RecipeHolder::value).get();
-                ItemStack resultItem = recipe.getResultItem(player.registryAccess()).copyWithCount(1);
+                BarrelRecipe recipe = (BarrelRecipe) player.level().getRecipeManager().byKey(recipeId).get();
+                ItemStack resultItem = recipe.getResultItem(player.level().registryAccess()).copyWithCount(1);
                 selectedItems.addItem(resultItem);
             }
         }
@@ -120,7 +124,7 @@ public class BrewingListMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return player.getItemInHand(hand).is(MaidTavernItems.BREWING_LIST);
+        return player.getItemInHand(hand).is(MaidTavernItems.BREWING_LIST.get());
     }
 
     @Override
@@ -128,8 +132,8 @@ public class BrewingListMenu extends AbstractContainerMenu {
         super.removed(player);
         if (player instanceof ServerPlayer) {
             ItemStack stack = player.getItemInHand(hand);
-            if (!stack.is(MaidTavernItems.BREWING_LIST)) return;
-            stack.set(MaidTavernItems.BREWING_LIST_DATA, brewingList);
+            if (!stack.is(MaidTavernItems.BREWING_LIST.get())) return;
+            stack.getOrCreateTag().put("BrewingList", BrewingList.CODEC.encodeStart(NbtOps.INSTANCE, brewingList).getOrThrow(false, message -> {}));
         }
     }
 
@@ -139,5 +143,9 @@ public class BrewingListMenu extends AbstractContainerMenu {
 
     public int getColumns() {
         return 6;
+    }
+
+    public static BrewingListScreen create(BrewingListMenu pMenu, Inventory pInventory, Component pTitle) {
+        return new BrewingListScreen(pMenu, pInventory, pTitle);
     }
 }

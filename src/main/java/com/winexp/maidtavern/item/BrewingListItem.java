@@ -5,7 +5,9 @@ import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.brew.BrewingList;
 import com.winexp.maidtavern.maid.brew.IBrewTask;
 import com.winexp.maidtavern.menu.BrewingListMenu;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.MenuProvider;
@@ -15,6 +17,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 public class BrewingListItem extends Item implements MenuProvider, MaidInteractionItem {
@@ -26,12 +29,10 @@ public class BrewingListItem extends Item implements MenuProvider, MaidInteracti
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
         ItemStack stack = player.getItemInHand(usedHand);
         if (player.isShiftKeyDown()) return InteractionResultHolder.pass(stack);
-        player.openMenu(this, buf -> {
-            buf.writeEnum(usedHand);
-            BrewingList brewingList = stack.get(MaidTavernItems.BREWING_LIST_DATA);
-            if (brewingList == null) brewingList = new BrewingList();
-            BrewingList.STREAM_CODEC.encode(buf, brewingList);
-        });
+        if (!level.isClientSide) {
+            ServerPlayer serverPlayer = (ServerPlayer) player;
+            NetworkHooks.openScreen(serverPlayer, this, buf -> buf.writeEnum(usedHand));
+        }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
 
@@ -41,14 +42,14 @@ public class BrewingListItem extends Item implements MenuProvider, MaidInteracti
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide) {
                 BrewingList brewingList = maid.getBrain().getMemory(MaidTavernEntities.BREWING_LIST.get()).orElse(new BrewingList());
-                stack.set(MaidTavernItems.BREWING_LIST_DATA, brewingList);
+                stack.getOrCreateTag().put("BrewingList", BrewingList.CODEC.encodeStart(NbtOps.INSTANCE, brewingList).getOrThrow(false, message -> {}));
                 player.displayClientMessage(Component.translatable("item.maidtavern.brewing_list.load"), true);
             }
             return true;
         } else {
-            if (stack.has(MaidTavernItems.BREWING_LIST_DATA)) {
+            if (stack.getTagElement("BrewingList") != null) {
                 if (!level.isClientSide) {
-                    BrewingList brewingList = stack.get(MaidTavernItems.BREWING_LIST_DATA);
+                    BrewingList brewingList = BrewingList.CODEC.parse(NbtOps.INSTANCE, stack.getTagElement("BrewingList")).getOrThrow(false, message -> {});
                     maid.getBrain().setMemory(MaidTavernEntities.BREWING_LIST.get(), brewingList);
                     player.displayClientMessage(Component.translatable("item.maidtavern.brewing_list.save"), true);
                 }
@@ -67,7 +68,7 @@ public class BrewingListItem extends Item implements MenuProvider, MaidInteracti
     public @Nullable AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
         InteractionHand hand = player.getUsedItemHand();
         ItemStack stack = player.getItemInHand(hand);
-        BrewingList brewingList = stack.getOrDefault(MaidTavernItems.BREWING_LIST_DATA.get(), new BrewingList());
+        BrewingList brewingList = BrewingList.CODEC.parse(NbtOps.INSTANCE, stack.getTagElement("BrewingList")).result().orElse(new BrewingList());
         brewingList = new BrewingList(brewingList);
         return new BrewingListMenu(containerId, inventory, hand, brewingList);
     }

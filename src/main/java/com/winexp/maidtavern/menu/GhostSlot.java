@@ -44,11 +44,6 @@ public class GhostSlot extends Slot {
         return stack;
     }
 
-    @Override
-    public boolean isFake() {
-        return true;
-    }
-
     public interface SlotClickedListener {
         void onSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess);
     }

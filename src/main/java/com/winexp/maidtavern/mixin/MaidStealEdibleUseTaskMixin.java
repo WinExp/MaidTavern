@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(MaidStealEdibleUseTask.class)
+@Mixin(value = MaidStealEdibleUseTask.class, remap = false)
 public class MaidStealEdibleUseTaskMixin {
     @Inject(method = "checkExtraStartConditions(Lnet/minecraft/server/level/ServerLevel;Lcom/github/tartaricacid/touhoulittlemaid/entity/passive/EntityMaid;)Z", at = @At("HEAD"), cancellable = true)
     private void checkConditions(ServerLevel level, EntityMaid maid, CallbackInfoReturnable<Boolean> cir) {
