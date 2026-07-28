@@ -45,6 +45,16 @@ public class GhostSlot extends Slot {
     }
 
     @Override
+    public boolean mayPickup(Player player) {
+        return false;
+    }
+
+    @Override
+    public boolean mayPlace(ItemStack stack) {
+        return false;
+    }
+
+    @Override
     public boolean isFake() {
         return true;
     }
