@@ -35,7 +35,7 @@ public class BrewingListMenu extends AbstractContainerMenu {
     public BrewingListMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
         this(containerId, playerInventory,
                 buf.readEnum(InteractionHand.class),
-                BrewingList.STREAM_CODEC.decode(buf)
+                new BrewingList()
         );
     }
 
