@@ -26,7 +26,9 @@ public interface IBrewTask extends IMaidTask {
 
     List<Pair<ItemStack, Integer>> getStacksToExtract(EntityMaid maid, IItemHandler storage);
 
-    List<ItemStack> getStacksToInsert(EntityMaid maid);
+    List<ItemStack> getResultsToInsert(EntityMaid maid);
+
+    List<ItemStack> getByproductsToInsert(EntityMaid maid);
 
     boolean isStorageValid(Level level, BlockPos pos);
 

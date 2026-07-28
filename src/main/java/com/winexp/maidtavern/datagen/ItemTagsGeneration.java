@@ -19,7 +19,7 @@ public class ItemTagsGeneration extends ItemTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
-        tag(MaidTavernItemTags.MAID_STORE_WHEN_BREWING)
+        tag(MaidTavernItemTags.BREWING_BYPRODUCTS)
                 .add(Items.BUCKET);
     }
 }

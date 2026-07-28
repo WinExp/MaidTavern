@@ -14,7 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class BrewingList {
-    public static final Codec<BrewingList> CODEC = RecordCodecBuilder.create((instance) -> instance.group(
+    public static final Codec<BrewingList> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.listOf().fieldOf("recipes").forGetter(BrewingList::getRecipes)
     ).apply(instance, BrewingList::new));
     public static final StreamCodec<ByteBuf, BrewingList> STREAM_CODEC = StreamCodec.composite(

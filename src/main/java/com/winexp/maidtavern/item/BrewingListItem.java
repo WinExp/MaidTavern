@@ -39,15 +39,19 @@ public class BrewingListItem extends Item implements MenuProvider, MaidInteracti
     public boolean useOnMaid(Level level, Player player, EntityMaid maid, ItemStack stack) {
         if (!(maid.getTask() instanceof IBrewTask)) return false;
         if (player.isShiftKeyDown()) {
-            BrewingList brewingList = maid.getBrain().getMemory(MaidTavernEntities.BREWING_LIST.get()).orElse(new BrewingList());
-            stack.set(MaidTavernItems.BREWING_LIST_DATA, brewingList);
-            player.displayClientMessage(Component.translatable("item.maidtavern.brewing_list.load"), true);
+            if (!level.isClientSide) {
+                BrewingList brewingList = maid.getBrain().getMemory(MaidTavernEntities.BREWING_LIST.get()).orElse(new BrewingList());
+                stack.set(MaidTavernItems.BREWING_LIST_DATA, brewingList);
+                player.displayClientMessage(Component.translatable("item.maidtavern.brewing_list.load"), true);
+            }
             return true;
         } else {
             if (stack.has(MaidTavernItems.BREWING_LIST_DATA)) {
-                BrewingList brewingList = stack.get(MaidTavernItems.BREWING_LIST_DATA);
-                maid.getBrain().setMemory(MaidTavernEntities.BREWING_LIST.get(), brewingList);
-                player.displayClientMessage(Component.translatable("item.maidtavern.brewing_list.save"), true);
+                if (!level.isClientSide) {
+                    BrewingList brewingList = stack.get(MaidTavernItems.BREWING_LIST_DATA);
+                    maid.getBrain().setMemory(MaidTavernEntities.BREWING_LIST.get(), brewingList);
+                    player.displayClientMessage(Component.translatable("item.maidtavern.brewing_list.save"), true);
+                }
                 return true;
             }
         }

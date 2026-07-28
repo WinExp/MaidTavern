@@ -12,7 +12,9 @@ public class TavernExtraMaidBrain implements IExtraMaidBrain {
     public List<MemoryModuleType<?>> getExtraMemoryTypes() {
         return Lists.newArrayList(
                 MaidTavernEntities.BREWING_LIST.get(),
-                MaidTavernEntities.BREWING_SESSION.get()
+                MaidTavernEntities.BREWING_SESSION.get(),
+
+                MaidTavernEntities.STORAGE_BINDING.get()
         );
     }
 }

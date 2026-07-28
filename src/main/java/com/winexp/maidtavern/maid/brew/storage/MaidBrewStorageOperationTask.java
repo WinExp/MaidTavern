@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import com.mojang.datafixers.util.Pair;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.brew.IBrewTask;
+import com.winexp.maidtavern.maid.brew.StorageBinding;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -68,8 +69,16 @@ public class MaidBrewStorageOperationTask extends Behavior<EntityMaid> {
         }
     }
 
-    private void insertStacks(EntityMaid maid, IItemHandlerModifiable storage, IItemHandlerModifiable inventory) {
-        for (ItemStack stack : task.getStacksToInsert(maid)) {
+    private void insertResults(EntityMaid maid, IItemHandlerModifiable storage, IItemHandlerModifiable inventory) {
+        for (ItemStack stack : task.getResultsToInsert(maid)) {
+            if (!ItemHandlerUtil.canInsert(storage, stack)) continue;
+            ItemHandlerUtil.replaceStack(inventory, stack,
+                    ItemHandlerHelper.insertItemStacked(storage, stack, false));
+        }
+    }
+
+    private void insertByproducts(EntityMaid maid, IItemHandlerModifiable storage, IItemHandlerModifiable inventory) {
+        for (ItemStack stack : task.getByproductsToInsert(maid)) {
             if (!ItemHandlerUtil.canInsert(storage, stack)) continue;
             ItemHandlerUtil.replaceStack(inventory, stack,
                     ItemHandlerHelper.insertItemStacked(storage, stack, false));
@@ -83,8 +92,16 @@ public class MaidBrewStorageOperationTask extends Behavior<EntityMaid> {
         BaseContainerBlockEntity container = (BaseContainerBlockEntity) level.getBlockEntity(pos);
         IItemHandlerModifiable storage = new InvWrapper(container);
         IItemHandlerModifiable inventory = maid.getAvailableInv(true);
-        extractStacks(maid, storage, inventory);
-        insertStacks(maid, storage, inventory);
+        StorageBinding binding = brain.getMemory(MaidTavernEntities.STORAGE_BINDING.get()).orElse(null);
+        if (binding == null || binding.ingredients().contains(pos)) {
+            extractStacks(maid, storage, inventory);
+        }
+        if (binding == null || binding.results().contains(pos)) {
+            insertResults(maid, storage, inventory);
+        }
+        if (binding == null || binding.byproducts().contains(pos)) {
+            insertByproducts(maid, storage, inventory);
+        }
         brain.eraseMemory(InitEntities.TARGET_POS.get());
         maid.playSound(SoundEvents.ITEM_FRAME_REMOVE_ITEM, 1.0f, 1.0f);
     }

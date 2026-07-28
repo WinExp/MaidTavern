@@ -3,6 +3,7 @@ package com.winexp.maidtavern.entity;
 import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.maid.brew.BrewingList;
 import com.winexp.maidtavern.maid.brew.BrewingSession;
+import com.winexp.maidtavern.maid.brew.StorageBinding;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.neoforged.bus.api.IEventBus;
@@ -16,9 +17,11 @@ public class MaidTavernEntities {
 
     public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<BrewingList>> BREWING_LIST = MEMORY_MODULE_TYPES
             .register("brewing_list", () -> new MemoryModuleType<>(Optional.of(BrewingList.CODEC)));
-
     public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<BrewingSession>> BREWING_SESSION = MEMORY_MODULE_TYPES
             .register("brewing_session", () -> new MemoryModuleType<>(Optional.of(BrewingSession.CODEC)));
+
+    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<StorageBinding>> STORAGE_BINDING = MEMORY_MODULE_TYPES
+            .register("storage_binding", () -> new MemoryModuleType<>(Optional.of(StorageBinding.CODEC)));
 
     public static void register(IEventBus modEventBus) {
         MEMORY_MODULE_TYPES.register(modEventBus);

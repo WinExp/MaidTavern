@@ -11,6 +11,7 @@ import com.winexp.maidtavern.maid.brew.IBrewTask;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
@@ -69,12 +70,12 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
 
     @Override
     protected boolean canStillUse(ServerLevel level, EntityMaid maid, long gameTime) {
-        if (!maid.getBrain().hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())) return false;
         Brain<EntityMaid> brain = maid.getBrain();
         PositionTracker targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).orElse(null);
         if (targetPos == null) return false;
         BlockPos pos = targetPos.currentBlockPosition();
-        BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).get();
+        BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).orElse(null);
+        if (session == null) return false;
         IBarrel barrel = task.getBarrel(level, pos);
         if (!task.isBarrelValid(maid, barrel) || !task.hasIngredients(maid, session.recipeId())) {
             clearSession(maid);
@@ -93,10 +94,6 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
 
         if (--cooldown > 0) return;
         BarrelRecipe recipe = session.getRecipe(maid.level().getRecipeManager());
-        if (recipe == null) {
-            clearSession(maid);
-            return;
-        }
         if (!barrel.isOpen()) {
             barrel.openLid(maid);
             cooldown = stepCooldown;
@@ -136,7 +133,9 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
         } else {
             barrel.closeLid(maid);
             clearSession(maid);
+            cooldown = stepCooldown;
         }
+        if (cooldown > 0) maid.swing(InteractionHand.MAIN_HAND);
     }
 
     private void clearSession(EntityMaid maid) {

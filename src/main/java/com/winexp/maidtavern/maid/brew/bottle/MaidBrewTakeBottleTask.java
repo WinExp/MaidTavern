@@ -8,6 +8,7 @@ import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.brew.IBrewTask;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
@@ -63,6 +64,7 @@ public class MaidBrewTakeBottleTask extends Behavior<EntityMaid> {
         Block.getDrops(state, level, pos, level.getBlockEntity(pos))
                 .forEach(stack -> ItemUtils.getItemToLivingEntity(maid, stack));
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL);
+        maid.swing(InteractionHand.MAIN_HAND);
         level.playSound(null, pos, SoundType.STONE.getPlaceSound(), maid.getSoundSource(), 1.0f, 1.0f);
     }
 }

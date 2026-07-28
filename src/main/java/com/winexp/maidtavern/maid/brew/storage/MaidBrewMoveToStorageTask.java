@@ -4,6 +4,7 @@ import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.brew.IBrewTask;
+import com.winexp.maidtavern.maid.brew.StorageBinding;
 import com.winexp.maidtavern.maid.task.MaidSurroundingMoveTask;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import net.minecraft.core.BlockPos;
@@ -31,7 +32,7 @@ public class MaidBrewMoveToStorageTask extends MaidSurroundingMoveTask {
                 || brain.hasMemoryValue(InitEntities.TARGET_POS.get())
                 || brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())
                 || !brain.hasMemoryValue(MaidTavernEntities.BREWING_LIST.get())) return false;
-        return task.shouldExtract(maid) || !task.getStacksToInsert(maid).isEmpty();
+        return task.shouldExtract(maid) || !task.getResultsToInsert(maid).isEmpty() || !task.getByproductsToInsert(maid).isEmpty();
     }
 
     @Override
@@ -43,8 +44,21 @@ public class MaidBrewMoveToStorageTask extends MaidSurroundingMoveTask {
     protected boolean shouldMoveTo(ServerLevel level, EntityMaid maid, BlockPos pos) {
         if (!(level.getBlockEntity(pos) instanceof Container container)) return false;
         if (!task.isStorageValid(level, pos)) return false;
+        Brain<EntityMaid> brain = maid.getBrain();
         IItemHandler containerInv = new InvWrapper(container);
-        if (!task.getStacksToExtract(maid, containerInv).isEmpty()) return true;
-        return ItemHandlerUtil.canInsertAny(containerInv, task.getStacksToInsert(maid));
+        StorageBinding binding = brain.getMemory(MaidTavernEntities.STORAGE_BINDING.get()).orElse(null);
+
+        if (!task.getStacksToExtract(maid, containerInv).isEmpty()) {
+            if (binding == null || binding.ingredients().contains(pos)) return true;
+        }
+
+        if (ItemHandlerUtil.canInsertAny(containerInv, task.getResultsToInsert(maid))) {
+            if (binding == null || binding.results().contains(pos)) return true;
+        }
+
+        if (ItemHandlerUtil.canInsertAny(containerInv, task.getByproductsToInsert(maid))) {
+            if (binding == null || binding.byproducts().contains(pos)) return true;
+        }
+        return false;
     }
 }

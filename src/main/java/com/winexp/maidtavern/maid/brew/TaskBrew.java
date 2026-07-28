@@ -28,6 +28,8 @@ import com.winexp.maidtavern.maid.task.IMaidTaskExt;
 import com.winexp.maidtavern.mixin.BarrelBlockEntityAccessor;
 import com.winexp.maidtavern.tag.MaidTavernItemTags;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
+import it.unimi.dsi.fastutil.objects.ReferenceArraySet;
+import it.unimi.dsi.fastutil.objects.ReferenceSet;
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -228,20 +230,28 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
     }
 
     @Override
-    public List<ItemStack> getStacksToInsert(EntityMaid maid) {
+    public List<ItemStack> getResultsToInsert(EntityMaid maid) {
         Brain<EntityMaid> brain = maid.getBrain();
         BrewingList brewingList = brain.getMemory(MaidTavernEntities.BREWING_LIST.get()).orElse(null);
         if (brewingList == null) return List.of();
+        ReferenceSet<ItemStack> results = new ReferenceArraySet<>();
         for (ResourceLocation recipeId : brewingList.getRecipes()) {
             BarrelRecipe recipe = (BarrelRecipe) maid.level().getRecipeManager().byKey(recipeId).map(RecipeHolder::value).get();
             ItemStack resultItem = recipe.getResultItem(maid.level().registryAccess());
             List<ItemStack> foundStacks = ItemHandlerUtil.findStacks(maid.getAvailableInv(false), stack ->
-                    ItemStack.isSameItem(stack, resultItem) || stack.is(MaidTavernItemTags.MAID_STORE_WHEN_BREWING));
-            if (!foundStacks.isEmpty()) {
-                return foundStacks;
-            }
+                    ItemStack.isSameItem(stack, resultItem));
+            results.addAll(foundStacks);
         }
-        return List.of();
+        return List.copyOf(results);
+    }
+
+    @Override
+    public List<ItemStack> getByproductsToInsert(EntityMaid maid) {
+        Brain<EntityMaid> brain = maid.getBrain();
+        BrewingList brewingList = brain.getMemory(MaidTavernEntities.BREWING_LIST.get()).orElse(null);
+        if (brewingList == null) return List.of();
+        return ItemHandlerUtil.findStacks(maid.getAvailableInv(false), stack ->
+                stack.is(MaidTavernItemTags.BREWING_BYPRODUCTS));
     }
 
     @Override
