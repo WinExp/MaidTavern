@@ -1,5 +1,6 @@
 package com.winexp.maidtavern.entity;
 
+import com.mojang.serialization.Codec;
 import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.maid.brew.BrewingList;
 import com.winexp.maidtavern.maid.brew.BrewingSession;
@@ -14,6 +15,9 @@ import java.util.Optional;
 
 public class MaidTavernEntities {
     private static final DeferredRegister<MemoryModuleType<?>> MEMORY_MODULE_TYPES = DeferredRegister.create(BuiltInRegistries.MEMORY_MODULE_TYPE, MaidTavern.MOD_ID);
+
+    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Integer>> MOLOTOV_DRUNK = MEMORY_MODULE_TYPES
+            .register("molotov_drunk", () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
 
     public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<BrewingList>> BREWING_LIST = MEMORY_MODULE_TYPES
             .register("brewing_list", () -> new MemoryModuleType<>(Optional.of(BrewingList.CODEC)));
