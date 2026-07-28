@@ -143,6 +143,11 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
     }
 
     @Override
+    protected boolean timedOut(long gameTime) {
+        return false;
+    }
+
+    @Override
     protected void stop(ServerLevel level, EntityMaid maid, long gameTime) {
         Brain<EntityMaid> brain = maid.getBrain();
         brain.eraseMemory(InitEntities.TARGET_POS.get());

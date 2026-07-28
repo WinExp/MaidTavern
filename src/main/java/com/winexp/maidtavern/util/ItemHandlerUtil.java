@@ -12,6 +12,17 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class ItemHandlerUtil {
+    public static List<ItemStack> toStacks(IItemHandler itemHandler) {
+        List<ItemStack> stacks = new ArrayList<>();
+        for (int i = 0; i < itemHandler.getSlots(); i++) {
+            ItemStack stack = itemHandler.getStackInSlot(i);
+            if (!stack.isEmpty()) {
+                stacks.add(stack);
+            }
+        }
+        return stacks;
+    }
+
     public static boolean isEmpty(IItemHandler itemHandler) {
         for (int i = 0; i < itemHandler.getSlots(); i++) {
             if (!itemHandler.getStackInSlot(i).isEmpty()) return false;
