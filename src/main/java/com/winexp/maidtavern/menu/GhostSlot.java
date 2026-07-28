@@ -44,6 +44,16 @@ public class GhostSlot extends Slot {
         return stack;
     }
 
+    @Override
+    public boolean mayPickup(Player player) {
+        return false;
+    }
+
+    @Override
+    public boolean mayPlace(ItemStack stack) {
+        return false;
+    }
+
     public interface SlotClickedListener {
         void onSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess);
     }
