@@ -89,7 +89,7 @@ public class TaskGrape implements IGrapeTask {
     @Override
     public List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
         return Lists.newArrayList(
-                Pair.of("has_shears", maid1 -> maid1.getMainHandItem().canPerformAction(ItemAbilities.SHEARS_HARVEST))
+                Pair.of("has_shears", maid1 -> true)
         );
     }
 }
