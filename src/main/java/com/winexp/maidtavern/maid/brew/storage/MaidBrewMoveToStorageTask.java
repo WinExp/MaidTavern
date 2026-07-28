@@ -2,6 +2,7 @@ package com.winexp.maidtavern.maid.brew.storage;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
+import com.mojang.datafixers.util.Pair;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.brew.IBrewTask;
 import com.winexp.maidtavern.maid.brew.StorageBinding;
@@ -46,9 +47,10 @@ public class MaidBrewMoveToStorageTask extends MaidSurroundingMoveTask {
         if (!task.isStorageValid(level, pos)) return false;
         Brain<EntityMaid> brain = maid.getBrain();
         IItemHandler containerInv = new InvWrapper(container);
+        IItemHandler maidInv = maid.getAvailableInv(true);
         StorageBinding binding = brain.getMemory(MaidTavernEntities.STORAGE_BINDING.get()).orElse(null);
 
-        if (!task.getStacksToExtract(maid, containerInv).isEmpty()) {
+        if (ItemHandlerUtil.canInsertAny(maidInv, task.getStacksToExtract(maid, containerInv).stream().map(Pair::getFirst).toList())) {
             if (binding == null || binding.ingredients().contains(pos)) return true;
         }
 
