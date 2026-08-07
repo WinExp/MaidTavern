@@ -6,6 +6,5 @@
   "task.maidtavern.brewing.desc": "Maid will brew and extract the wine according to the brewing list.",
   "item.maidtavern.brewing_list": "Brewing List",
   "item.maidtavern.brewing_list.load": "Loaded the maid’s brewing list into the item",
-  "item.maidtavern.brewing_list.save": "Saved the item’s brewing list into the maid",
-  "gui.maidtavern.brewing_list": "Brewing List"
+  "item.maidtavern.brewing_list.save": "Saved the item’s brewing list into the maid"
 }

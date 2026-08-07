@@ -2,6 +2,9 @@ package com.winexp.maidtavern.maid.brew;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,6 +17,11 @@ public class BrewingList {
     public static final Codec<BrewingList> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.listOf().fieldOf("recipes").forGetter(BrewingList::getRecipes)
     ).apply(instance, BrewingList::new));
+    public static final StreamCodec<FriendlyByteBuf, BrewingList> STREAM_CODEC = StreamCodec.composite(
+            ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()),
+            BrewingList::getRecipes,
+            BrewingList::new
+    );
 
     private final List<ResourceLocation> recipeIds = new LinkedList<>();
 

@@ -6,6 +6,5 @@
   "task.maidtavern.brewing.desc": "女仆会根据酿造列表主动酿造，取出酒",
   "item.maidtavern.brewing_list": "酿造列表",
   "item.maidtavern.brewing_list.load": "已将女仆的酿造列表加载到物品",
-  "item.maidtavern.brewing_list.save": "已将物品的酿造列表保存到女仆",
-  "gui.maidtavern.brewing_list": "酿造列表"
+  "item.maidtavern.brewing_list.save": "已将物品的酿造列表保存到女仆"
 }

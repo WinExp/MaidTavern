@@ -1,23 +1,21 @@
 package com.winexp.maidtavern.item;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
+import com.winexp.maidtavern.client.gui.brewing_list.BrewingListScreen;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.brew.BrewingList;
 import com.winexp.maidtavern.maid.brew.IBrewTask;
-import com.winexp.maidtavern.menu.BrewingListMenu;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
 
-public class BrewingListItem extends Item implements MenuProvider, MaidInteractionItem {
+public class BrewingListItem extends Item implements MaidInteractionItem {
     public BrewingListItem(Properties properties) {
         super(properties);
     }
@@ -26,7 +24,10 @@ public class BrewingListItem extends Item implements MenuProvider, MaidInteracti
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
         ItemStack stack = player.getItemInHand(usedHand);
         if (player.isShiftKeyDown()) return InteractionResultHolder.pass(stack);
-        player.openMenu(this, buf -> buf.writeEnum(usedHand));
+        if (level.isClientSide) {
+            BrewingList brewingList = stack.getOrDefault(MaidTavernItems.BREWING_LIST_DATA, new BrewingList());
+            Minecraft.getInstance().setScreen(new BrewingListScreen((LocalPlayer) player, usedHand, brewingList));
+        }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
 
@@ -51,19 +52,5 @@ public class BrewingListItem extends Item implements MenuProvider, MaidInteracti
             }
         }
         return false;
-    }
-
-    @Override
-    public Component getDisplayName() {
-        return Component.translatable("gui.maidtavern.brewing_list");
-    }
-
-    @Override
-    public @Nullable AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
-        InteractionHand hand = player.getUsedItemHand();
-        ItemStack stack = player.getItemInHand(hand);
-        BrewingList brewingList = stack.getOrDefault(MaidTavernItems.BREWING_LIST_DATA.get(), new BrewingList());
-        brewingList = new BrewingList(brewingList);
-        return new BrewingListMenu(containerId, inventory, hand, brewingList);
     }
 }

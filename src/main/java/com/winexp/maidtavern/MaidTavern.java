@@ -3,7 +3,6 @@ package com.winexp.maidtavern;
 import com.mojang.logging.LogUtils;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.item.MaidTavernItems;
-import com.winexp.maidtavern.menu.MaidTavernMenuTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -18,7 +17,6 @@ public class MaidTavern {
     public MaidTavern(IEventBus modEventBus, ModContainer modContainer) {
         MaidTavernItems.register(modEventBus);
         MaidTavernEntities.register(modEventBus);
-        MaidTavernMenuTypes.register(modEventBus);
     }
 
     public static ResourceLocation asResource(String path) {
