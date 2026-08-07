@@ -13,6 +13,7 @@ import java.util.Optional;
 
 public class GhostSlot extends Slot {
     private final List<SlotClickedListener> listeners = new ArrayList<>();
+    public HighlightPredicate highlightPredicate;
 
     public GhostSlot(Container container, int slot, int x, int y) {
         super(container, slot, x, y);
@@ -61,5 +62,9 @@ public class GhostSlot extends Slot {
 
     public interface SlotClickedListener {
         void onSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess);
+    }
+
+    public interface HighlightPredicate {
+        boolean shouldRenderHighlight(GhostSlot slot, int mouseX, int mouseY);
     }
 }
