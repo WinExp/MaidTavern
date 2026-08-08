@@ -4,18 +4,18 @@ import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.item.MaidTavernItems;
 import com.winexp.maidtavern.maid.brew.BrewingList;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ServerboundSetBrewingListPayload(InteractionHand hand, BrewingList brewingList) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<ServerboundSetBrewingListPayload> TYPE = new Type<>(MaidTavern.asResource("serverbound/set_brewing_list"));
     public static final StreamCodec<FriendlyByteBuf, ServerboundSetBrewingListPayload> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT.map(idx -> InteractionHand.values()[idx], Enum::ordinal),
+            NeoForgeStreamCodecs.enumCodec(InteractionHand.class),
             ServerboundSetBrewingListPayload::hand,
             BrewingList.STREAM_CODEC,
             ServerboundSetBrewingListPayload::brewingList,

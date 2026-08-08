@@ -5,6 +5,7 @@ import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.datafixers.util.Pair;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
+import com.winexp.maidtavern.maid.brew.BrewingSession;
 import com.winexp.maidtavern.maid.brew.IBrewTask;
 import com.winexp.maidtavern.maid.brew.StorageBinding;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
@@ -20,6 +21,7 @@ import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
@@ -33,8 +35,7 @@ public class MaidBrewStorageOperationTask extends Behavior<EntityMaid> {
     public MaidBrewStorageOperationTask(IBrewTask task, double closeEnoughDist) {
         super(ImmutableMap.of(
                 InitEntities.TARGET_POS.get(), MemoryStatus.VALUE_PRESENT,
-                MaidTavernEntities.BREWING_LIST.get(), MemoryStatus.VALUE_PRESENT,
-                MaidTavernEntities.BREWING_SESSION.get(), MemoryStatus.VALUE_ABSENT
+                MaidTavernEntities.BREWING_LIST.get(), MemoryStatus.VALUE_PRESENT
         ));
         this.task = task;
         this.closeEnoughDist = closeEnoughDist;
@@ -44,9 +45,11 @@ public class MaidBrewStorageOperationTask extends Behavior<EntityMaid> {
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
         Brain<EntityMaid> brain = maid.getBrain();
         PositionTracker targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).get();
-
         BlockPos pos = targetPos.currentBlockPosition();
         if (!task.isStorageValid(level, pos)) return false;
+
+        BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).orElse(null);
+        if (session != null && session.stage() != BrewingSession.Stage.TAKE_INGREDIENTS) return false;
 
         Vec3 targetV3d = targetPos.currentPosition();
         if (maid.distanceToSqr(targetV3d) > Math.pow(closeEnoughDist, 2)) {
@@ -60,13 +63,26 @@ public class MaidBrewStorageOperationTask extends Behavior<EntityMaid> {
     }
 
     private void extractStacks(EntityMaid maid, IItemHandlerModifiable storage, IItemHandlerModifiable inventory) {
-        for (Pair<ItemStack, Integer> pair : task.getStacksToExtract(maid, storage)) {
+        Brain<EntityMaid> brain = maid.getBrain();
+        IItemHandler maidInv = maid.getAvailableInv(true);
+        for (Pair<ItemStack, Integer> pair : task.getBottlesToExtract(maidInv, storage)) {
             ItemStack stack = pair.getFirst();
             int count = pair.getSecond();
             if (!ItemHandlerUtil.canInsert(inventory, stack.copyWithCount(count))) continue;
             ItemHandlerHelper.insertItemStacked(inventory, stack.copyWithCount(count), false);
             stack.shrink(count);
         }
+
+        BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).orElse(null);
+        if (session == null) return;
+        for (Pair<ItemStack, Integer> pair : task.getIngredientsToExtract(maidInv, storage, maid.level().getRecipeManager(), session.entry())) {
+            ItemStack stack = pair.getFirst();
+            int count = pair.getSecond();
+            if (!ItemHandlerUtil.canInsert(inventory, stack.copyWithCount(count))) continue;
+            ItemHandlerHelper.insertItemStacked(inventory, stack.copyWithCount(count), false);
+            stack.shrink(count);
+        }
+        brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), session.withStage(BrewingSession.Stage.BREWING));
     }
 
     private void insertResults(EntityMaid maid, IItemHandlerModifiable storage, IItemHandlerModifiable inventory) {

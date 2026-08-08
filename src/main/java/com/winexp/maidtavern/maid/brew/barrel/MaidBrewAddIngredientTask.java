@@ -3,6 +3,7 @@ package com.winexp.maidtavern.maid.brew.barrel;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
+import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.BarrelBlock;
 import com.github.ysbbbbbb.kaleidoscopetavern.crafting.recipe.BarrelRecipe;
 import com.google.common.collect.ImmutableMap;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
@@ -20,7 +21,9 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,17 +48,27 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
         Brain<EntityMaid> brain = maid.getBrain();
-        PositionTracker targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).get();
-
-        BlockPos pos = targetPos.currentBlockPosition();
-        IBarrel barrel = task.getBarrel(level, pos);
-        BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).get();
-        if (!task.isBarrelValid(maid, barrel) || !task.hasIngredients(maid, session.recipeId())) {
+        BrewingSession session = getSession(maid);
+        if (!session.stage().isBrewing()) {
+            brain.eraseMemory(InitEntities.TARGET_POS.get());
+            clearSession(maid);
+            return false;
+        }
+        BlockPos pos = session.barrelPos().orElse(null);
+        if (pos == null) {
+            brain.eraseMemory(InitEntities.TARGET_POS.get());
+            clearSession(maid);
+            return false;
+        }
+        BlockState state = level.getBlockState(pos);
+        IBarrel barrel = BarrelBlock.getBarrelEntity(level, pos, state);
+        if (!task.isBarrelValid(maid, barrel) || !task.hasIngredients(maid, session.entry().recipeId())) {
             brain.eraseMemory(InitEntities.TARGET_POS.get());
             clearSession(maid);
             return false;
         }
 
+        PositionTracker targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).get();
         Vec3 targetV3d = targetPos.currentPosition();
         if (maid.distanceToSqr(targetV3d) > Math.pow(closeEnoughDist, 2)) {
             Optional<WalkTarget> walkTarget = brain.getMemory(MemoryModuleType.WALK_TARGET);
@@ -70,41 +83,37 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
 
     @Override
     protected boolean canStillUse(ServerLevel level, EntityMaid maid, long gameTime) {
-        Brain<EntityMaid> brain = maid.getBrain();
-        PositionTracker targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).orElse(null);
-        if (targetPos == null) return false;
-        BlockPos pos = targetPos.currentBlockPosition();
-        BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).orElse(null);
+        BrewingSession session = getSession(maid);
         if (session == null) return false;
-        IBarrel barrel = task.getBarrel(level, pos);
-        if (!task.isBarrelValid(maid, barrel) || !task.hasIngredients(maid, session.recipeId())) {
-            clearSession(maid);
-            return false;
-        }
-        return true;
+        BlockPos pos = session.barrelPos().orElse(null);
+        if (pos == null) return false;
+        BlockState state = level.getBlockState(pos);
+        IBarrel barrel = BarrelBlock.getBarrelEntity(level, pos, state);
+        return task.isBarrelValid(maid, barrel) && task.hasIngredients(maid, session.entry().recipeId());
     }
 
     @Override
     protected void tick(ServerLevel level, EntityMaid maid, long gameTime) {
         Brain<EntityMaid> brain = maid.getBrain();
-        PositionTracker targetPos = maid.getBrain().getMemory(InitEntities.TARGET_POS.get()).get();
+        PositionTracker targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).get();
         BlockPos pos = targetPos.currentBlockPosition();
-        IBarrel barrel = task.getBarrel(level, pos);
-        BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).get();
+        BlockState state = level.getBlockState(pos);
+        IBarrel barrel = BarrelBlock.getBarrelEntity(level, pos, state);
+        BrewingSession session = getSession(maid);
 
         if (--cooldown > 0) return;
-        BarrelRecipe recipe = session.getRecipe(maid.level().getRecipeManager());
+        BarrelRecipe recipe = session.entry().getRecipe(maid.level().getRecipeManager());
         if (!barrel.isOpen()) {
             barrel.openLid(maid);
             cooldown = stepCooldown;
-        } else if (!session.fluidPlaced().booleanValue()) {
+        } else if (!session.stage().isFluidsPlaced()) {
             for (int i = 0; i < 4; i++) {
                 barrel.addFluid(maid, ItemHandlerUtil.findStack(maid.getAvailableInv(true), stack ->
                         stack.is(recipe.fluid().getBucket())));
             }
-            session.fluidPlaced().setTrue();
+            setSession(maid, session.withStage(BrewingSession.Stage.FLUIDS_PLACED));
             cooldown = stepCooldown;
-        } else if (!session.ingredientsPlaced().booleanValue()) {
+        } else if (!session.stage().isIngredientsPlaced()) {
             boolean isPlaced = false;
             ingredient:
             for (Ingredient ingredient : recipe.ingredients()) {
@@ -128,7 +137,7 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
                     }
                 }
             }
-            session.ingredientsPlaced().setTrue();
+            setSession(maid, session.withStage(BrewingSession.Stage.INGREDIENTS_PLACED));
             if (isPlaced) cooldown = stepCooldown;
         } else {
             barrel.closeLid(maid);
@@ -136,6 +145,14 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
             cooldown = stepCooldown;
         }
         if (cooldown > 0) maid.swing(InteractionHand.MAIN_HAND);
+    }
+
+    private @Nullable BrewingSession getSession(EntityMaid maid) {
+        return maid.getBrain().getMemory(MaidTavernEntities.BREWING_SESSION.get()).orElse(null);
+    }
+
+    private void setSession(EntityMaid maid, BrewingSession session) {
+        maid.getBrain().setMemory(MaidTavernEntities.BREWING_SESSION.get(), session);
     }
 
     private void clearSession(EntityMaid maid) {
@@ -151,5 +168,6 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
     protected void stop(ServerLevel level, EntityMaid maid, long gameTime) {
         Brain<EntityMaid> brain = maid.getBrain();
         brain.eraseMemory(InitEntities.TARGET_POS.get());
+        clearSession(maid);
     }
 }

@@ -5,7 +5,7 @@ import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.brew.IBrewTask;
 import com.winexp.maidtavern.maid.task.MaidSurroundingMoveTask;
-import com.winexp.maidtavern.util.MaidUtils;
+import com.winexp.maidtavern.util.MaidUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.Brain;
@@ -36,6 +36,6 @@ public class MaidBrewMoveToBottleTask extends MaidSurroundingMoveTask {
     @Override
     protected boolean shouldMoveTo(ServerLevel level, EntityMaid maid, BlockPos pos) {
         if (!task.isBottleValid(maid, pos) && !task.shouldPlaceBottle(maid, pos)) return false;
-        return !MaidUtils.isTargetOccupied(maid, pos);
+        return !MaidUtil.isTargetOccupied(maid, pos);
     }
 }

@@ -12,6 +12,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -29,6 +30,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,7 +46,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
     public static final int RIGHT_PICKER_Y = 16;
 
     public BrewingListScreen(LocalPlayer player, InteractionHand hand, BrewingList brewingList) {
-        super(new BrewingListMenu(hand, player.registryAccess(), new BrewingList(brewingList), player.level().getRecipeManager().getAllRecipesFor(ModRecipes.BARREL_RECIPE)),
+        super(new BrewingListMenu(hand, player.registryAccess(), brewingList, player.level().getRecipeManager().getAllRecipesFor(ModRecipes.BARREL_RECIPE)),
                 player.getInventory(), Component.empty());
         imageWidth = 286;
         imageHeight = 180;
@@ -77,7 +79,6 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
         guiGraphics.pose().translate(leftPos, topPos, 0);
         for (Slot slot : menu.slots) {
             if (!slot.isActive()) continue;
-            //if (isHovering(slot.x, slot.y, 16, 16, mouseX, mouseY)) continue;
             if (!(slot instanceof GhostSlot ghostSlot)) continue;
             if (ghostSlot.highlightPredicate != null && ghostSlot.highlightPredicate.shouldRenderHighlight(ghostSlot, mouseX, mouseY)) {
                 renderSlotHighlight(guiGraphics, slot, mouseX, mouseY, partialTick);
@@ -106,7 +107,8 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
     public static class BrewingListMenu extends AbstractContainerMenu {
         private final InteractionHand hand;
         private final HolderLookup.Provider registries;
-        private final BrewingList brewingList;
+        private final BrewingList.Builder builder;
+        private final List<ResourceLocation> selectedRecipes;
         private final List<RecipeHolder<BarrelRecipe>> allRecipes;
         private final Map<ResourceLocation, BarrelRecipe> recipeMap;
         private int selectedScrollRow;
@@ -129,7 +131,8 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
             super(null, 0);
             this.hand = hand;
             this.registries = registries;
-            this.brewingList = brewingList;
+            builder = new BrewingList.Builder(brewingList);
+            selectedRecipes = new LinkedList<>(brewingList.entries().keySet());
             this.allRecipes = allRecipes;
             recipeMap = allRecipes.stream().collect(Collectors.toMap(RecipeHolder::id, RecipeHolder::value));
 
@@ -149,7 +152,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
                         int idx = getScrolledRecipeIdx(slot1.getContainerSlot());
                         if (idx >= allRecipes.size()) return false;
                         RecipeHolder<BarrelRecipe> recipe = allRecipes.get(idx);
-                        return brewingList.contains(recipe.id());
+                        return selectedRecipes.contains(recipe.id());
                     };
                     addSlot(slot);
                 }
@@ -192,23 +195,30 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
         private void onSelectedSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess) {
             if (action == ClickAction.PRIMARY) {
                 int idx = getScrolledSelectedIdx(slot.getContainerSlot());
-                if (brewingList.remove(idx) != null) updateSlots();
+                if (idx >= selectedRecipes.size()) return;
+                ResourceLocation recipeId = selectedRecipes.get(idx);
+                builder.remove(recipeId);
+                selectedRecipes.remove(idx);
+                updateSlots();
             }
         }
 
         private void onRecipeSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess) {
             int idx = getScrolledRecipeIdx(slot.getContainerSlot());
-            RecipeHolder<BarrelRecipe> recipe = allRecipes.get(idx);
-            if (brewingList.add(recipe.id())) updateSlots();
+            ResourceLocation recipeId = allRecipes.get(idx).id();
+            if (selectedRecipes.contains(recipeId)) return;
+            builder.put(recipeId, new BrewingList.Config(5, List.of(new BlockPos(-3, -60, 22))));
+            selectedRecipes.add(recipeId);
+            updateSlots();
         }
 
         public void updateSlots() {
             selectedContainer.clearContent();
             int selectedBeginIdx = getScrolledSelectedIdx(0);
-            for (int i = selectedBeginIdx; i < brewingList.size(); i++) {
+            for (int i = selectedBeginIdx; i < selectedRecipes.size(); i++) {
                 int slot = i - selectedBeginIdx;
                 if (slot >= PICKER_ROWS * PICKER_COLUMNS) break;
-                ResourceLocation recipeId = brewingList.get(i);
+                ResourceLocation recipeId = selectedRecipes.get(i);
                 BarrelRecipe recipe = recipeMap.get(recipeId);
                 selectedContainer.setItem(slot, recipe.getResultItem(registries));
             }
@@ -225,7 +235,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
         @Override
         public void removed(Player player) {
             super.removed(player);
-            ServerboundSetBrewingListPayload payload = new ServerboundSetBrewingListPayload(hand, brewingList);
+            ServerboundSetBrewingListPayload payload = new ServerboundSetBrewingListPayload(hand, builder.build());
             Minecraft.getInstance().getConnection().send(payload);
         }
 
@@ -240,7 +250,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
         }
 
         public int getSelectedRows() {
-            return Mth.positiveCeilDiv(brewingList.size(), getSelectedColumns());
+            return Mth.positiveCeilDiv(selectedRecipes.size(), getSelectedColumns());
         }
 
         public int getSelectedColumns() {

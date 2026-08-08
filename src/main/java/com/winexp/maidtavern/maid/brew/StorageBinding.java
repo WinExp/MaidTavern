@@ -1,21 +1,27 @@
 package com.winexp.maidtavern.maid.brew;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public record StorageBinding(List<BlockPos> ingredients, List<BlockPos> results, List<BlockPos> byproducts) {
-    public static final StorageBinding EMPTY = new StorageBinding(List.of(), List.of(), List.of());
+public record StorageBinding(ImmutableSet<BlockPos> ingredients, ImmutableSet<BlockPos> results, ImmutableSet<BlockPos> byproducts) {
+    public static final StorageBinding EMPTY = new StorageBinding(ImmutableSet.of(), ImmutableSet.of(), ImmutableSet.of());
 
     public static final Codec<StorageBinding> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            BlockPos.CODEC.listOf().fieldOf("ingredients").forGetter(StorageBinding::ingredients),
-            BlockPos.CODEC.listOf().fieldOf("results").forGetter(StorageBinding::results),
-            BlockPos.CODEC.listOf().fieldOf("byproducts").forGetter(StorageBinding::byproducts)
+            BlockPos.CODEC.listOf().xmap(ImmutableSet::copyOf, List::copyOf).fieldOf("ingredients").forGetter(StorageBinding::ingredients),
+            BlockPos.CODEC.listOf().xmap(ImmutableSet::copyOf, List::copyOf).fieldOf("results").forGetter(StorageBinding::results),
+            BlockPos.CODEC.listOf().xmap(ImmutableSet::copyOf, List::copyOf).fieldOf("byproducts").forGetter(StorageBinding::byproducts)
     ).apply(instance, StorageBinding::new));
+
+    public StorageBinding(Collection<BlockPos> ingredients, Collection<BlockPos> results, Collection<BlockPos> byproducts) {
+        this(ImmutableSet.copyOf(ingredients), ImmutableSet.copyOf(results), ImmutableSet.copyOf(byproducts));
+    }
 
     public boolean isAllEmpty() {
         return ingredients.isEmpty() && results.isEmpty() && byproducts.isEmpty();
@@ -23,9 +29,9 @@ public record StorageBinding(List<BlockPos> ingredients, List<BlockPos> results,
 
     public List<BlockPos> get(Type type) {
         return switch (type) {
-            case INGREDIENTS -> ingredients;
-            case RESULTS -> results;
-            case BYPRODUCTS -> byproducts;
+            case INGREDIENTS -> List.copyOf(ingredients);
+            case RESULTS -> List.copyOf(results);
+            case BYPRODUCTS -> List.copyOf(byproducts);
         };
     }
 

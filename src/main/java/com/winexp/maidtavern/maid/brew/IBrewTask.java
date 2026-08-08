@@ -7,6 +7,7 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Contract;
@@ -15,8 +16,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public interface IBrewTask extends IMaidTask {
-    @Nullable IBarrel getBarrel(Level level, BlockPos pos);
-
     @Contract("_, null -> false")
     boolean isBarrelValid(EntityMaid maid, @Nullable IBarrel barrel);
 
@@ -24,7 +23,9 @@ public interface IBrewTask extends IMaidTask {
 
     boolean shouldExtract(EntityMaid maid);
 
-    List<Pair<ItemStack, Integer>> getStacksToExtract(EntityMaid maid, IItemHandler storage);
+    List<Pair<ItemStack, Integer>> getBottlesToExtract(IItemHandler inventory, IItemHandler storage);
+
+    List<Pair<ItemStack, Integer>> getIngredientsToExtract(IItemHandler inventory, IItemHandler storage, RecipeManager manager, BrewingList.Entry entry);
 
     List<ItemStack> getResultsToInsert(EntityMaid maid);
 

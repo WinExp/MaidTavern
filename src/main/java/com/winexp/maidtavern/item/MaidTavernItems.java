@@ -21,7 +21,7 @@ public class MaidTavernItems {
     public static final DeferredItem<BrewingListItem> BREWING_LIST = ITEMS
             .register("brewing_list", () ->
                     new BrewingListItem(new Item.Properties()
-                            .component(BREWING_LIST_DATA, new BrewingList())
+                            .component(BREWING_LIST_DATA, BrewingList.DEFAULT)
                             .stacksTo(1)));
 
     public static void register(IEventBus modEventBus) {
