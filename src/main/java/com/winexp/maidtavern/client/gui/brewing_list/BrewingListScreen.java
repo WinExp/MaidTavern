@@ -6,7 +6,7 @@ import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.item.MaidTavernItems;
 import com.winexp.maidtavern.maid.brew.BrewingList;
 import com.winexp.maidtavern.menu.GhostSlot;
-import com.winexp.maidtavern.network.ServerboundSetBrewingListPayload;
+import com.winexp.maidtavern.network.serverbound.ServerboundSetBrewingListPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;

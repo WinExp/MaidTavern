@@ -9,9 +9,12 @@ import com.winexp.maidtavern.maid.brew.BrewingSession;
 import com.winexp.maidtavern.maid.brew.IBrewTask;
 import com.winexp.maidtavern.maid.brew.StorageBinding;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
+import com.winexp.maidtavern.util.MaidUtil;
+import com.winexp.maidtavern.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
@@ -19,7 +22,6 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
@@ -46,7 +48,7 @@ public class MaidBrewStorageOperationTask extends Behavior<EntityMaid> {
         Brain<EntityMaid> brain = maid.getBrain();
         PositionTracker targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).get();
         BlockPos pos = targetPos.currentBlockPosition();
-        if (!task.isStorageValid(level, pos)) return false;
+        if (!MaidUtil.isStorageValid(level, pos)) return false;
 
         BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).orElse(null);
         if (session != null && session.stage() != BrewingSession.Stage.TAKE_INGREDIENTS) return false;
@@ -105,7 +107,7 @@ public class MaidBrewStorageOperationTask extends Behavior<EntityMaid> {
     protected void start(ServerLevel level, EntityMaid maid, long gameTime) {
         Brain<EntityMaid> brain = maid.getBrain();
         BlockPos pos = brain.getMemory(InitEntities.TARGET_POS.get()).get().currentBlockPosition();
-        BaseContainerBlockEntity container = (BaseContainerBlockEntity) level.getBlockEntity(pos);
+        Container container = Utils.getContainer(level, pos);
         IItemHandlerModifiable storage = new InvWrapper(container);
         IItemHandlerModifiable inventory = maid.getAvailableInv(true);
         StorageBinding binding = brain.getMemory(MaidTavernEntities.STORAGE_BINDING.get()).orElse(null);

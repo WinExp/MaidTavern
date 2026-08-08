@@ -44,7 +44,7 @@ public class BrewingListItem extends Item implements MaidInteractionItem {
         } else {
             if (stack.has(MaidTavernItems.BREWING_LIST_DATA)) {
                 if (!level.isClientSide) {
-                    BrewingList brewingList = stack.get(MaidTavernItems.BREWING_LIST_DATA);
+                    BrewingList brewingList = stack.getOrDefault(MaidTavernItems.BREWING_LIST_DATA, BrewingList.DEFAULT);
                     maid.getBrain().setMemory(MaidTavernEntities.BREWING_LIST.get(), brewingList);
                     player.displayClientMessage(Component.translatable("item.maidtavern.brewing_list.save"), true);
                 }

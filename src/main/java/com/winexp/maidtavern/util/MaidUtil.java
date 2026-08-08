@@ -4,9 +4,14 @@ import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.MaidPathFindingBFS;
 import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 import java.util.function.Function;
@@ -39,6 +44,16 @@ public class MaidUtil {
                     if (pathFinding.canPathReach(pos.offset(x, y, z))) return true;
                 }
             }
+        }
+        return false;
+    }
+
+    public static boolean isStorageValid(Level level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (level.getBlockEntity(pos) instanceof Container) {
+            if (!state.is(Blocks.BARREL)
+                    && !state.is(Blocks.CHEST)) return false;
+            return !state.is(Blocks.CHEST) || ChestBlock.getContainer((ChestBlock) state.getBlock(), state, level, pos, false) != null;
         }
         return false;
     }

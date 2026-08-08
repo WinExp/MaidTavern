@@ -5,6 +5,14 @@
   "task.maidtavern.brewing": "酿酒",
   "task.maidtavern.brewing.desc": "女仆会根据酿造列表主动酿造，取出酒",
   "item.maidtavern.brewing_list": "酿造列表",
-  "item.maidtavern.brewing_list.load": "已将女仆的酿造列表加载到物品",
-  "item.maidtavern.brewing_list.save": "已将物品的酿造列表保存到女仆"
+  "item.maidtavern.brewing_list.load": "已加载酿造列表",
+  "item.maidtavern.brewing_list.save": "已保存酿造列表",
+  "item.maidtavern.storage_binding_tool": "库存绑定工具",
+  "item.maidtavern.storage_binding_tool.tip.load": "已加载绑定信息",
+  "item.maidtavern.storage_binding_tool.tip.save": "已保存绑定信息",
+  "item.maidtavern.storage_binding_tool.tip.binding_mode": "绑定模式：%s",
+  "item.maidtavern.storage_binding_tool.tooltip.remaining": "...剩余 %s 个坐标",
+  "item.maidtavern.storage_binding_tool.type.ingredients": "原料",
+  "item.maidtavern.storage_binding_tool.type.results": "产物",
+  "item.maidtavern.storage_binding_tool.type.byproducts": "副产物"
 }

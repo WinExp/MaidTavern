@@ -34,7 +34,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -42,9 +41,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
@@ -247,17 +243,6 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
         if (brewingList == null) return List.of();
         return ItemHandlerUtil.findStacks(maid.getAvailableInv(false), stack ->
                 stack.is(MaidTavernItemTags.BREWING_BYPRODUCTS));
-    }
-
-    @Override
-    public boolean isStorageValid(Level level, BlockPos pos) {
-        BlockState state = level.getBlockState(pos);
-        if (level.getBlockEntity(pos) instanceof Container) {
-            if (!state.is(Blocks.BARREL)
-            && !state.is(Blocks.CHEST)) return false;
-            return !state.is(Blocks.CHEST) || !ChestBlock.isChestBlockedAt(level, pos);
-        }
-        return false;
     }
 
     @Override

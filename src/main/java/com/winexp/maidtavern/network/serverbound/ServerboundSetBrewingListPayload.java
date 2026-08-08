@@ -1,4 +1,4 @@
-package com.winexp.maidtavern.network;
+package com.winexp.maidtavern.network.serverbound;
 
 import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.item.MaidTavernItems;

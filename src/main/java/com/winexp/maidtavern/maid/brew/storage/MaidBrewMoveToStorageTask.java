@@ -13,6 +13,7 @@ import com.winexp.maidtavern.maid.brew.StorageBinding;
 import com.winexp.maidtavern.maid.task.MaidSurroundingMoveTask;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import com.winexp.maidtavern.util.MaidUtil;
+import com.winexp.maidtavern.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
@@ -63,8 +64,9 @@ public class MaidBrewMoveToStorageTask extends MaidSurroundingMoveTask {
 
     @Override
     protected boolean shouldMoveTo(ServerLevel level, EntityMaid maid, BlockPos pos) {
-        if (!(level.getBlockEntity(pos) instanceof Container container)) return false;
-        if (!task.isStorageValid(level, pos)) return false;
+        Container container = Utils.getContainer(level, pos);
+        if (container == null) return false;
+        if (!MaidUtil.isStorageValid(level, pos)) return false;
         MaidPathFindingBFS pathFinding = getOrCreateArrivalMap(level, maid);
         Brain<EntityMaid> brain = maid.getBrain();
         IItemHandler containerInv = new InvWrapper(container);

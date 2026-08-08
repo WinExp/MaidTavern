@@ -5,6 +5,14 @@
   "task.maidtavern.brewing": "Brewing",
   "task.maidtavern.brewing.desc": "Maid will brew and extract the wine according to the brewing list.",
   "item.maidtavern.brewing_list": "Brewing List",
-  "item.maidtavern.brewing_list.load": "Loaded the maid’s brewing list into the item",
-  "item.maidtavern.brewing_list.save": "Saved the item’s brewing list into the maid"
+  "item.maidtavern.brewing_list.load": "Loaded the brewing list",
+  "item.maidtavern.brewing_list.save": "Saved the brewing list",
+  "item.maidtavern.storage_binding_tool": "Storage Binding Tool",
+  "item.maidtavern.storage_binding_tool.tip.load": "Loaded the storage binding data",
+  "item.maidtavern.storage_binding_tool.tip.save": "Saved the storage binding data",
+  "item.maidtavern.storage_binding_tool.tip.binding_mode": "Binding mode: %s",
+  "item.maidtavern.storage_binding_tool.tooltip.remaining": "...%s positions remaining",
+  "item.maidtavern.storage_binding_tool.type.ingredients": "Ingredients",
+  "item.maidtavern.storage_binding_tool.type.results": "Results",
+  "item.maidtavern.storage_binding_tool.type.byproducts": "Byproducts"
 }
