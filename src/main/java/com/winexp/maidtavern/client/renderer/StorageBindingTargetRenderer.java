@@ -1,10 +1,9 @@
-package com.winexp.maidtavern.client.event;
+package com.winexp.maidtavern.client.renderer;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.datafixers.util.Pair;
 import com.winexp.maidtavern.item.MaidTavernItems;
 import com.winexp.maidtavern.maid.brew.StorageBinding;
 import com.winexp.maidtavern.util.RenderUtil;
@@ -23,40 +22,50 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @EventBusSubscriber(value = Dist.CLIENT)
-public class StorageBindingRenderEvent {
-    private static final RenderType TRIANGLES = RenderType.create(
+public class StorageBindingTargetRenderer {
+    private static final RenderType QUADS = RenderType.create(
             "storage_binding_triangles",
             DefaultVertexFormat.POSITION_COLOR,
-            VertexFormat.Mode.TRIANGLES,
+            VertexFormat.Mode.QUADS,
             1536,
             RenderType.CompositeState.builder()
                     .setShaderState(RenderType.POSITION_COLOR_SHADER)
-                    .setTransparencyState(RenderType.NO_TRANSPARENCY)
+                    .setLayeringState(RenderType.VIEW_OFFSET_Z_LAYERING)
+                    .setTransparencyState(RenderType.TRANSLUCENT_TRANSPARENCY)
                     .setCullState(RenderType.NO_CULL)
+                    .setTextureState(RenderType.NO_TEXTURE)
+                    .setLightmapState(RenderType.NO_LIGHTMAP)
                     .setDepthTestState(RenderType.NO_DEPTH_TEST)
                     .setWriteMaskState(RenderType.COLOR_WRITE)
                     .createCompositeState(false)
     );
 
-    private static final List<Pair<Vec3, Integer>> cubes = new ArrayList<>();
+    private static final List<CompiledCube> cubes = new ArrayList<>();
+    private static StorageBinding.Type prevType;
+    private static StorageBinding prevBinding;
 
     @SubscribeEvent
     public static void onRender(RenderLevelStageEvent event) {
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
+        RenderLevelStageEvent.Stage stage = event.getStage();
+        if ((stage == RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES || stage == RenderLevelStageEvent.Stage.AFTER_WEATHER) && !cubes.isEmpty()) {
             Minecraft mc = Minecraft.getInstance();
+            if (mc.options.hideGui) return;
             LocalPlayer player = mc.player;
             if (player == null) return;
             Camera camera = event.getCamera();
             Vec3 cameraPos = camera.getPosition();
             PoseStack poseStack = event.getPoseStack();
-            VertexConsumer consumer = mc.renderBuffers().bufferSource().getBuffer(TRIANGLES);
-            for (Pair<Vec3, Integer> cube : cubes) {
-                Vec3 cubePos = cube.getFirst().subtract(cameraPos);
-                int color = cube.getSecond();
-                RenderUtil.renderCube(poseStack, consumer, cubePos, 0.4f,
+            VertexConsumer consumer = mc.renderBuffers().bufferSource().getBuffer(QUADS);
+            for (CompiledCube cube : cubes) {
+                Vec3 cubePos = cube.pos.subtract(cameraPos);
+                float size = cube.size;
+                int color = cube.color;
+                RenderUtil.renderCube(poseStack, consumer, cubePos, size,
                         FastColor.ARGB32.red(color) / 255f,
                         FastColor.ARGB32.green(color) / 255f,
                         FastColor.ARGB32.blue(color) / 255f,
@@ -68,22 +77,28 @@ public class StorageBindingRenderEvent {
 
     @SubscribeEvent
     public static void tick(ClientTickEvent.Post event) {
-        cubes.clear();
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
         Level level = mc.level;
         if (player == null || level == null) return;
         ItemStack stack = player.getMainHandItem();
         StorageBinding binding = stack.get(MaidTavernItems.STORAGE_BINDING_DATA);
-        if (binding == null) return;
         StorageBinding.Type type = stack.getOrDefault(MaidTavernItems.STORAGE_BINDING_TYPE_DATA, StorageBinding.Type.INGREDIENTS);
+        if (Objects.equals(prevBinding, binding) && prevType == type) return;
+        cubes.clear();
+        prevBinding = binding;
+        prevType = type;
+        if (binding == null) return;
         int color = switch (type) {
             case StorageBinding.Type.INGREDIENTS -> FastColor.ARGB32.color(210, 0, 0);
             case StorageBinding.Type.RESULTS -> FastColor.ARGB32.color(0, 210, 0);
             case StorageBinding.Type.BYPRODUCTS -> FastColor.ARGB32.color(0, 0, 210);
         };
         for (BlockPos pos : binding.get(type)) {
-            cubes.add(new Pair<>(pos.getCenter(), color));
+            cubes.add(new CompiledCube(pos.getCenter(), 0.4f, color));
         }
+    }
+
+    public record CompiledCube(Vec3 pos, float size, int color) {
     }
 }

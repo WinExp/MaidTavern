@@ -8,20 +8,9 @@
     {
       "item": "minecraft:feather"
     },
-    [
-      {
-        "item": "kaleidoscope_tavern:grape"
-      },
-      {
-        "item": "kaleidoscope_tavern:ice_grape"
-      },
-      {
-        "item": "kaleidoscope_tavern:gold_grape"
-      },
-      {
-        "item": "kaleidoscope_tavern:green_grape"
-      }
-    ]
+    {
+      "item": "kaleidoscope_tavern:grape"
+    }
   ],
   "result": {
     "count": 1,

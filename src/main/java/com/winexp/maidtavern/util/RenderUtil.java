@@ -82,9 +82,6 @@ public class RenderUtil {
         addVertex(consumer, pose, x1, y1, z1, red, green, blue, alpha);
         addVertex(consumer, pose, x2, y2, z2, red, green, blue, alpha);
         addVertex(consumer, pose, x3, y3, z3, red, green, blue, alpha);
-
-        addVertex(consumer, pose, x1, y1, z1, red, green, blue, alpha);
-        addVertex(consumer, pose, x3, y3, z3, red, green, blue, alpha);
         addVertex(consumer, pose, x4, y4, z4, red, green, blue, alpha);
     }
 

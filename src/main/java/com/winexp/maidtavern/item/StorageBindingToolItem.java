@@ -9,6 +9,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -64,9 +66,16 @@ public class StorageBindingToolItem extends Item implements MaidInteractionItem,
         StorageBinding binding = stack.getOrDefault(MaidTavernItems.STORAGE_BINDING_DATA, StorageBinding.EMPTY);
         StorageBinding.Type type = stack.getOrDefault(MaidTavernItems.STORAGE_BINDING_TYPE_DATA, StorageBinding.Type.INGREDIENTS);
         if (!level.isClientSide) {
-            if (binding.get(type).contains(pos)) binding = binding.remove(type, pos);
-            else binding = binding.add(type, pos);
+            float pitch;
+            if (binding.get(type).contains(pos)) {
+                binding = binding.remove(type, pos);
+                pitch = 0.8f;
+            } else {
+                binding = binding.add(type, pos);
+                pitch = 0.9f;
+            }
             stack.set(MaidTavernItems.STORAGE_BINDING_DATA, binding);
+            player.playNotifySound(SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.PLAYERS, 1, pitch);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }

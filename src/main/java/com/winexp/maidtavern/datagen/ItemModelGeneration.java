@@ -14,5 +14,6 @@ public class ItemModelGeneration extends ItemModelProvider {
     @Override
     protected void registerModels() {
         basicItem(MaidTavernItems.BREWING_LIST.get());
+        basicItem(MaidTavernItems.STORAGE_BINDING_TOOL.get());
     }
 }
