@@ -29,8 +29,8 @@ public class StorageBindingToolItem extends Item implements MaidInteractionItem,
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        StorageBinding binding = stack.getOrDefault(MaidTavernItems.STORAGE_BINDING_DATA, StorageBinding.EMPTY);
-        StorageBinding.Type selectedType = stack.getOrDefault(MaidTavernItems.STORAGE_BINDING_TYPE_DATA, StorageBinding.Type.INGREDIENTS);
+        StorageBinding binding = stack.get(MaidTavernItems.STORAGE_BINDING_DATA);
+        StorageBinding.Type selectedType = stack.get(MaidTavernItems.STORAGE_BINDING_TYPE_DATA);
         Component selectedTypeName = Component.translatable("item.maidtavern.storage_binding_tool.type." + selectedType.getSerializedName()).withStyle(ChatFormatting.WHITE);
         tooltipComponents.add(Component.translatable("item.maidtavern.storage_binding_tool.tip.binding_mode", selectedTypeName).withStyle(ChatFormatting.GRAY));
         boolean nextLine = false;
@@ -63,8 +63,8 @@ public class StorageBindingToolItem extends Item implements MaidInteractionItem,
         BlockPos pos = context.getClickedPos();
         if (!player.isShiftKeyDown()) return InteractionResult.PASS;
         ItemStack stack = context.getItemInHand();
-        StorageBinding binding = stack.getOrDefault(MaidTavernItems.STORAGE_BINDING_DATA, StorageBinding.EMPTY);
-        StorageBinding.Type type = stack.getOrDefault(MaidTavernItems.STORAGE_BINDING_TYPE_DATA, StorageBinding.Type.INGREDIENTS);
+        StorageBinding binding = stack.get(MaidTavernItems.STORAGE_BINDING_DATA);
+        StorageBinding.Type type = stack.get(MaidTavernItems.STORAGE_BINDING_TYPE_DATA);
         if (!level.isClientSide) {
             float pitch;
             if (binding.get(type).contains(pos)) {
@@ -89,7 +89,7 @@ public class StorageBindingToolItem extends Item implements MaidInteractionItem,
                 stack.set(MaidTavernItems.STORAGE_BINDING_DATA, binding);
                 player.displayClientMessage(Component.translatable("item.maidtavern.storage_binding_tool.tip.load"), true);
             } else {
-                StorageBinding binding = stack.getOrDefault(MaidTavernItems.STORAGE_BINDING_DATA, StorageBinding.EMPTY);
+                StorageBinding binding = stack.get(MaidTavernItems.STORAGE_BINDING_DATA);
                 maid.getBrain().setMemory(MaidTavernEntities.STORAGE_BINDING.get(), binding);
                 player.displayClientMessage(Component.translatable("item.maidtavern.storage_binding_tool.tip.save"), true);
             }
@@ -100,7 +100,7 @@ public class StorageBindingToolItem extends Item implements MaidInteractionItem,
     @Override
     public boolean onMouseScroll(LocalPlayer player, ItemStack stack, double scrollX, double scrollY) {
         if (!player.isShiftKeyDown()) return false;
-        StorageBinding.Type type = stack.getOrDefault(MaidTavernItems.STORAGE_BINDING_TYPE_DATA, StorageBinding.Type.INGREDIENTS);
+        StorageBinding.Type type = stack.get(MaidTavernItems.STORAGE_BINDING_TYPE_DATA);
         int direction = Mth.sign(scrollY);
         int types = StorageBinding.Type.values().length;
         if (direction != 0) {

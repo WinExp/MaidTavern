@@ -1,15 +1,20 @@
 package com.winexp.maidtavern.item;
 
+import com.google.common.collect.ImmutableSet;
 import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.maid.brew.BrewingList;
 import com.winexp.maidtavern.maid.brew.StorageBinding;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.List;
 
 public class MaidTavernItems {
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MaidTavern.MOD_ID);
@@ -30,6 +35,11 @@ public class MaidTavernItems {
                     .persistent(StorageBinding.Type.CODEC)
                     .networkSynchronized(StorageBinding.Type.STREAM_CODEC));
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ImmutableSet<BlockPos>>> TARGET_POS_DATA = DATA_COMPONENTS
+            .registerComponentType("target_pos", builder -> builder
+                    .persistent(BlockPos.CODEC.listOf().xmap(ImmutableSet::copyOf, List::copyOf))
+                    .networkSynchronized(BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()).map(ImmutableSet::copyOf, List::copyOf)));
+
     public static final DeferredItem<BrewingListItem> BREWING_LIST = ITEMS
             .register("brewing_list", () ->
                     new BrewingListItem(new Item.Properties()
@@ -41,6 +51,12 @@ public class MaidTavernItems {
                     new StorageBindingToolItem(new Item.Properties()
                             .component(STORAGE_BINDING_DATA, StorageBinding.EMPTY)
                             .component(STORAGE_BINDING_TYPE_DATA, StorageBinding.Type.INGREDIENTS)
+                            .stacksTo(1)));
+
+    public static final DeferredItem<TargetSelectionToolItem> TARGET_SELECTION_TOOL = ITEMS
+            .register("target_selection_tool", () ->
+                    new TargetSelectionToolItem(new Item.Properties()
+                            .component(TARGET_POS_DATA, ImmutableSet.of())
                             .stacksTo(1)));
 
     public static void register(IEventBus modEventBus) {

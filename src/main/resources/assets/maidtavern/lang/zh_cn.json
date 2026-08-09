@@ -14,5 +14,6 @@
   "item.maidtavern.storage_binding_tool.tooltip.remaining": "...剩余 %s 个坐标",
   "item.maidtavern.storage_binding_tool.type.ingredients": "原料",
   "item.maidtavern.storage_binding_tool.type.results": "产物",
-  "item.maidtavern.storage_binding_tool.type.byproducts": "副产物"
+  "item.maidtavern.storage_binding_tool.type.byproducts": "副产物",
+  "item.maidtavern.target_selection_tool": "目标选择工具"
 }

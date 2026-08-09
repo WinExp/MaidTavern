@@ -25,7 +25,7 @@ public class BrewingListItem extends Item implements MaidInteractionItem {
         ItemStack stack = player.getItemInHand(usedHand);
         if (player.isShiftKeyDown()) return InteractionResultHolder.pass(stack);
         if (level.isClientSide) {
-            BrewingList brewingList = stack.getOrDefault(MaidTavernItems.BREWING_LIST_DATA, BrewingList.DEFAULT);
+            BrewingList brewingList = stack.get(MaidTavernItems.BREWING_LIST_DATA);
             Minecraft.getInstance().setScreen(new BrewingListScreen((LocalPlayer) player, usedHand, brewingList));
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
@@ -44,7 +44,7 @@ public class BrewingListItem extends Item implements MaidInteractionItem {
         } else {
             if (stack.has(MaidTavernItems.BREWING_LIST_DATA)) {
                 if (!level.isClientSide) {
-                    BrewingList brewingList = stack.getOrDefault(MaidTavernItems.BREWING_LIST_DATA, BrewingList.DEFAULT);
+                    BrewingList brewingList = stack.get(MaidTavernItems.BREWING_LIST_DATA);
                     maid.getBrain().setMemory(MaidTavernEntities.BREWING_LIST.get(), brewingList);
                     player.displayClientMessage(Component.translatable("item.maidtavern.brewing_list.save"), true);
                 }

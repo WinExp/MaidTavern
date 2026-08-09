@@ -1,10 +1,10 @@
 package com.winexp.maidtavern.client.renderer;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.winexp.maidtavern.item.MaidTavernItems;
-import com.winexp.maidtavern.maid.brew.StorageBinding;
 import com.winexp.maidtavern.util.RenderUtil;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -26,10 +26,9 @@ import java.util.List;
 import java.util.Objects;
 
 @EventBusSubscriber(value = Dist.CLIENT)
-public class StorageBindingTargetRenderer {
+public class TargetSelectionRenderer {
     private static final List<CompiledCube> cubes = new ArrayList<>();
-    private static StorageBinding.Type prevType;
-    private static StorageBinding prevBinding;
+    private static ImmutableSet<BlockPos> prevPositions;
 
     @SubscribeEvent
     public static void onRender(RenderLevelStageEvent event) {
@@ -80,21 +79,14 @@ public class StorageBindingTargetRenderer {
         Level level = mc.level;
         if (player == null || level == null) return;
         ItemStack stack = player.getMainHandItem();
-        StorageBinding binding = stack.get(MaidTavernItems.STORAGE_BINDING_DATA);
-        StorageBinding.Type type = stack.get(MaidTavernItems.STORAGE_BINDING_TYPE_DATA);
-        if (Objects.equals(prevBinding, binding) && prevType == type) return;
+        ImmutableSet<BlockPos> positions = stack.get(MaidTavernItems.TARGET_POS_DATA);
+        if (Objects.equals(prevPositions, positions)) return;
         cubes.clear();
-        prevBinding = binding;
-        prevType = type;
-        if (binding == null || type == null) return;
-        int color = switch (type) {
-            case StorageBinding.Type.INGREDIENTS -> FastColor.ARGB32.color(210, 30, 30);
-            case StorageBinding.Type.RESULTS -> FastColor.ARGB32.color(30, 210, 30);
-            case StorageBinding.Type.BYPRODUCTS -> FastColor.ARGB32.color(30, 30, 210);
-        };
-        for (BlockPos pos : binding.get(type)) {
+        prevPositions = positions;
+        if (positions == null) return;
+        for (BlockPos pos : positions) {
             cubes.add(new CompiledCube(pos.getCenter(), 1f,
-                    FastColor.ARGB32.color(70, color), color));
+                    FastColor.ARGB32.color(70, 210, 210, 210), FastColor.ARGB32.color(210, 210, 210)));
         }
     }
 
