@@ -12,7 +12,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -207,7 +206,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
             int idx = getScrolledRecipeIdx(slot.getContainerSlot());
             ResourceLocation recipeId = allRecipes.get(idx).id();
             if (selectedRecipes.contains(recipeId)) return;
-            builder.put(recipeId, new BrewingList.Config(5, List.of(new BlockPos(-3, -60, 22))));
+            builder.put(recipeId, BrewingList.Config.DEFAULT);
             selectedRecipes.add(recipeId);
             updateSlots();
         }

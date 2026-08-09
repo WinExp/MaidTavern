@@ -60,7 +60,6 @@ public class MaidBrewMoveToBarrelTask extends MaidSurroundingMoveTask {
         Brain<EntityMaid> brain = maid.getBrain();
         BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).orElse(null);
         if (session != null) {
-            if (session.entry().getRecipe(level.getRecipeManager()) == null) return;
             selectedEntry = session.entry();
             BlockPos barrelPos = session.barrelPos().orElse(null);
             if (barrelPos == null) {
@@ -99,6 +98,9 @@ public class MaidBrewMoveToBarrelTask extends MaidSurroundingMoveTask {
         BrewingList.Config config = selectedEntry.config();
         if (!config.barrelPos().isEmpty() && !config.barrelPos().contains(barrelOriginPos)) return false;
         mutablePos.set(barrelOriginPos.above(2));
-        return !MaidUtil.isTargetOccupied(maid, pos);
+        return !MaidUtil.isPosOccupied(maid, barrelOriginPos, maid1 -> {
+            BrewingSession session = maid1.getBrain().getMemory(MaidTavernEntities.BREWING_SESSION.get()).orElse(null);
+            return session == null ? null : session.barrelPos().orElse(null);
+        });
     }
 }
