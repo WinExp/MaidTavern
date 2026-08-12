@@ -104,6 +104,11 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
     }
 
     @Override
+    public boolean enableDrinking(EntityMaid maid) {
+        return !maid.getBrain().hasMemoryValue(InitEntities.TARGET_POS.get());
+    }
+
+    @Override
     public boolean isBarrelValid(EntityMaid maid, @Nullable IBarrel barrel) {
         Brain<EntityMaid> brain = maid.getBrain();
         if (barrel == null || barrel.isBrewing()) return false;

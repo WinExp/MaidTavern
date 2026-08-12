@@ -84,7 +84,7 @@ public class MaidBrewMoveToBarrelTask extends MaidSurroundingMoveTask {
             searchForDestination(level, maid);
             var targetPos = brain.getMemory(InitEntities.TARGET_POS.get());
             targetPos.map(PositionTracker::currentBlockPosition).ifPresent(pos ->
-                    brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), new BrewingSession(selectedEntry, pos.below(2), BrewingSession.Stage.BREWING)));
+                    brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), new BrewingSession(selectedEntry, pos.below(2), BrewingSession.Stage.START_BREWING)));
         }
     }
 

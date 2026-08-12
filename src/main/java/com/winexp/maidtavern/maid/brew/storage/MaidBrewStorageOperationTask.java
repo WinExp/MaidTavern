@@ -84,7 +84,7 @@ public class MaidBrewStorageOperationTask extends Behavior<EntityMaid> {
             ItemHandlerHelper.insertItemStacked(inventory, stack.copyWithCount(count), false);
             stack.shrink(count);
         }
-        brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), session.withStage(BrewingSession.Stage.BREWING));
+        brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), session.withStage(BrewingSession.Stage.START_BREWING));
     }
 
     private void insertResults(EntityMaid maid, IItemHandlerModifiable storage, IItemHandlerModifiable inventory) {

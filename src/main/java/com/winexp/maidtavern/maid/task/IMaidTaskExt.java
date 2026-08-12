@@ -11,4 +11,8 @@ public interface IMaidTaskExt {
     default boolean shouldPickupGaveItem(EntityMaid maid, ItemEntity itemEntity) {
         return false;
     }
+
+    default boolean enableDrinking(EntityMaid maid) {
+        return true;
+    }
 }

@@ -33,7 +33,7 @@ public record BrewingSession(BrewingList.Entry entry, Optional<BlockPos> barrelP
 
     public enum Stage implements StringRepresentable {
         TAKE_INGREDIENTS(false, false, false),
-        BREWING(true, false, false),
+        START_BREWING(true, false, false),
         FLUIDS_PLACED(true, true, false),
         INGREDIENTS_PLACED(true, true, true);
 
