@@ -2,6 +2,8 @@ package com.winexp.maidtavern.maid.brew.bottle;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
+import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.TapBlock;
+import com.github.ysbbbbbb.kaleidoscopetavern.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopetavern.util.ItemUtils;
 import com.google.common.collect.ImmutableMap;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
@@ -43,7 +45,13 @@ public class MaidBrewTakeBottleTask extends Behavior<EntityMaid> {
         PositionTracker targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).get();
 
         BlockPos pos = targetPos.currentBlockPosition();
-        if (!task.isBottleValid(maid, pos)) return false;
+        if (!task.isBottleValid(maid, pos)) {
+            BlockState tapState = level.getBlockState(pos.above());
+            if (!tapState.is(ModBlocks.TAP) || !tapState.getValue(TapBlock.OPEN)) {
+                brain.eraseMemory(InitEntities.TARGET_POS.get());
+            }
+            return false;
+        }
 
         Vec3 targetV3d = targetPos.currentPosition();
         if (maid.distanceToSqr(targetV3d) > Math.pow(closeEnoughDist, 2)) {

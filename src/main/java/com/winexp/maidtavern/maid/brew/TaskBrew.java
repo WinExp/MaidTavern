@@ -78,8 +78,8 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
                 Pair.of(5, new MaidBrewMoveToBarrelTask(this, 0.45f, 4)),
                 Pair.of(5, new MaidBrewAddIngredientTask(this, 2.5, 20)),
                 Pair.of(5, new MaidBrewMoveToBottleTask(this, 0.45f, 4)),
-                Pair.of(5, new MaidBrewTakeBottleTask(this, 2)),
-                Pair.of(5, new MaidBrewPlaceBottleTask(this, 2))
+                Pair.of(5, new MaidBrewPlaceBottleTask(this, 2)),
+                Pair.of(5, new MaidBrewTakeBottleTask(this, 2))
         );
     }
 

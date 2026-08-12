@@ -50,10 +50,6 @@ public class MaidBrewPlaceBottleTask extends Behavior<EntityMaid> {
 
         BlockPos pos = targetPos.currentBlockPosition();
         if (!task.shouldPlaceBottle(maid, pos)) {
-            BlockState tapState = level.getBlockState(pos.above());
-            if (!tapState.is(ModBlocks.TAP) || !tapState.getValue(TapBlock.OPEN)) {
-                brain.eraseMemory(InitEntities.TARGET_POS.get());
-            }
             return false;
         }
 
