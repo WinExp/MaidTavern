@@ -74,7 +74,6 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
             Optional<WalkTarget> walkTarget = brain.getMemory(MemoryModuleType.WALK_TARGET);
             if (walkTarget.isEmpty() || !walkTarget.get().getTarget().currentPosition().equals(targetV3d)) {
                 brain.eraseMemory(InitEntities.TARGET_POS.get());
-                clearSession(maid);
             }
             return false;
         }
@@ -94,12 +93,10 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
 
     @Override
     protected void tick(ServerLevel level, EntityMaid maid, long gameTime) {
-        Brain<EntityMaid> brain = maid.getBrain();
-        PositionTracker targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).get();
-        BlockPos pos = targetPos.currentBlockPosition();
+        BrewingSession session = getSession(maid);
+        BlockPos pos = session.barrelPos().get();
         BlockState state = level.getBlockState(pos);
         IBarrel barrel = BarrelBlock.getBarrelEntity(level, pos, state);
-        BrewingSession session = getSession(maid);
 
         if (--cooldown > 0) return;
         BarrelRecipe recipe = session.entry().getRecipe(maid.level().getRecipeManager());
