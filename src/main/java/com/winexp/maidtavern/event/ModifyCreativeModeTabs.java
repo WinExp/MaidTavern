@@ -13,6 +13,7 @@ public class ModifyCreativeModeTabs {
         if (event.getTab() == InitCreativeTabs.MAIN_TAB.get()) {
             event.accept(MaidTavernItems.BREWING_LIST);
             event.accept(MaidTavernItems.STORAGE_BINDING_TOOL);
+            event.accept(MaidTavernItems.BARREL_BINDING_TOOL);
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.winexp.maidtavern.datagen;
 
+import com.winexp.maidtavern.datagen.recipe.MaidTavernRecipeGeneration;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -33,7 +34,7 @@ public class MaidTavernDataGeneration {
         );
         generator.addProvider(
                 event.includeServer(),
-                new ShapelessRecipeGeneration(output, registries)
+                new MaidTavernRecipeGeneration(output, registries)
         );
     }
 }

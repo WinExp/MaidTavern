@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Objects;
 
 @EventBusSubscriber(value = Dist.CLIENT)
-public class TargetSelectionRenderer {
+public class BarrelBindingTargetRenderer {
     private static final List<CompiledCube> cubes = new ArrayList<>();
     private static ImmutableSet<BlockPos> prevPositions;
 
@@ -79,13 +79,15 @@ public class TargetSelectionRenderer {
         Level level = mc.level;
         if (player == null || level == null) return;
         ItemStack stack = player.getMainHandItem();
-        ImmutableSet<BlockPos> positions = stack.get(MaidTavernItems.TARGET_POS_DATA);
+        ImmutableSet<BlockPos> positions = stack.get(MaidTavernItems.BARREL_POSITIONS_DATA);
         if (Objects.equals(prevPositions, positions)) return;
         cubes.clear();
         prevPositions = positions;
         if (positions == null) return;
         for (BlockPos pos : positions) {
             cubes.add(new CompiledCube(pos.getCenter(), 1f,
+                    FastColor.ARGB32.color(70, 210, 210, 210), FastColor.ARGB32.color(210, 210, 210)));
+            cubes.add(new CompiledCube(pos.above().getCenter(), 3f,
                     FastColor.ARGB32.color(70, 210, 210, 210), FastColor.ARGB32.color(210, 210, 210)));
         }
     }

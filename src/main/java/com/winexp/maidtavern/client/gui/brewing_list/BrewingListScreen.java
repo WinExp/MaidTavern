@@ -77,8 +77,8 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
         ResourceLocation recipeId = menu.selectedRecipes.get(menu.getScrolledSelectedIdx(entry.index));
         BrewingList.Config config = menu.builder.get(recipeId);
         if (config.barrelPos().isEmpty()) {
-            minecraft.pushGuiLayer(new InventorySelectionScreen(minecraft.player, stack -> stack.is(MaidTavernItems.TARGET_SELECTION_TOOL), stack -> {
-                Set<BlockPos> targetPositions = stack.get(MaidTavernItems.TARGET_POS_DATA);
+            minecraft.pushGuiLayer(new InventorySelectionScreen(minecraft.player, stack -> stack.is(MaidTavernItems.BARREL_BINDING_TOOL), stack -> {
+                Set<BlockPos> targetPositions = stack.get(MaidTavernItems.BARREL_POSITIONS_DATA);
                 applyNewBarrelPositions(entry, recipeId, targetPositions);
             }));
         } else {

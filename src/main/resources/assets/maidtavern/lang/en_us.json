@@ -14,7 +14,7 @@
   "item.maidtavern.storage_binding_tool.type.ingredients": "Ingredients",
   "item.maidtavern.storage_binding_tool.type.results": "Results",
   "item.maidtavern.storage_binding_tool.type.byproducts": "Byproducts",
-  "item.maidtavern.target_selection_tool": "Target Selection Tool",
-  "item.maidtavern.target_selection_tool.tooltip.title": "Positions:",
+  "item.maidtavern.barrel_binding_tool": "Barrel Binding Tool",
+  "item.maidtavern.barrel_binding_tool.tooltip.title": "Positions:",
   "maidtavern.target_selection.tooltip.remaining": "...%s positions remaining"
 }

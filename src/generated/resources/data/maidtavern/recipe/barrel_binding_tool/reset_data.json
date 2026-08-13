@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "maidtavern:barrel_binding_tool"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "maidtavern:barrel_binding_tool"
+  }
+}
