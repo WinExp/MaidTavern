@@ -132,8 +132,18 @@ public record BrewingList(ImmutableMap<ResourceLocation, Config> entries) {
                 return this;
             }
 
+            public Builder addAllBarrelPos(Collection<BlockPos> pos) {
+                barrelPos.addAll(pos);
+                return this;
+            }
+
             public Builder removeBarrelPos(BlockPos pos) {
                 barrelPos.remove(pos);
+                return this;
+            }
+
+            public Builder removeAllBarrelPos() {
+                barrelPos.clear();
                 return this;
             }
 
@@ -152,6 +162,10 @@ public record BrewingList(ImmutableMap<ResourceLocation, Config> entries) {
 
         public Builder(BrewingList brewingList) {
             entries.putAll(brewingList.entries);
+        }
+
+        public Config get(ResourceLocation recipeId) {
+            return entries.get(recipeId);
         }
 
         public Builder put(ResourceLocation recipeId, Config config) {

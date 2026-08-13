@@ -49,7 +49,7 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
         Brain<EntityMaid> brain = maid.getBrain();
         BrewingSession session = getSession(maid);
-        if (session.stage() != BrewingSession.Stage.START_BREWING) {
+        if (!session.stage().isBrewing()) {
             brain.eraseMemory(InitEntities.TARGET_POS.get());
             clearSession(maid);
             return false;

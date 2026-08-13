@@ -9,14 +9,25 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class GhostSlot extends Slot {
     private final List<SlotClickedListener> listeners = new ArrayList<>();
     public HighlightPredicate highlightPredicate;
+    public boolean highlightable = true;
+    public boolean renderTooltip = true;
+    private boolean active = true;
 
     public GhostSlot(Container container, int slot, int x, int y) {
         super(container, slot, x, y);
+    }
+
+    @Override
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public void addListener(SlotClickedListener listener) {
@@ -34,18 +45,6 @@ public class GhostSlot extends Slot {
     }
 
     @Override
-    public Optional<ItemStack> tryRemove(int count, int decrement, Player player) {
-        super.tryRemove(count, decrement, player);
-        return Optional.empty();
-    }
-
-    @Override
-    public ItemStack safeInsert(ItemStack stack, int increment) {
-        super.safeInsert(stack.copy(), increment);
-        return stack;
-    }
-
-    @Override
     public boolean mayPickup(Player player) {
         return false;
     }
@@ -58,6 +57,11 @@ public class GhostSlot extends Slot {
     @Override
     public boolean isFake() {
         return true;
+    }
+
+    @Override
+    public boolean isHighlightable() {
+        return highlightable;
     }
 
     public interface SlotClickedListener {

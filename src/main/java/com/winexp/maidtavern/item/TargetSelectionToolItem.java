@@ -37,7 +37,7 @@ public class TargetSelectionToolItem extends Item {
                 soundPitch = 0.9f;
             }
             stack.set(MaidTavernItems.TARGET_POS_DATA, ImmutableSet.copyOf(positions));
-            player.playNotifySound(SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.PLAYERS, 1, soundPitch);
+            player.playNotifySound(SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.PLAYERS, 0.8f, soundPitch);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }

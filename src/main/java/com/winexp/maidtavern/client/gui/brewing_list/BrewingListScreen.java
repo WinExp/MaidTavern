@@ -3,6 +3,7 @@ package com.winexp.maidtavern.client.gui.brewing_list;
 import com.github.ysbbbbbb.kaleidoscopetavern.crafting.recipe.BarrelRecipe;
 import com.github.ysbbbbbb.kaleidoscopetavern.init.ModRecipes;
 import com.winexp.maidtavern.MaidTavern;
+import com.winexp.maidtavern.client.gui.brewing_list.widget.BrewingListEntry;
 import com.winexp.maidtavern.item.MaidTavernItems;
 import com.winexp.maidtavern.maid.brew.BrewingList;
 import com.winexp.maidtavern.menu.GhostSlot;
@@ -12,6 +13,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -29,14 +31,12 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @OnlyIn(Dist.CLIENT)
 public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen.BrewingListMenu> {
-    public static final ResourceLocation LIST_LOCATION = MaidTavern.asResource("textures/gui/brewing_list/list.png");
+    public static final ResourceLocation BACKGROUND = MaidTavern.asResource("textures/gui/brewing_list/list.png");
     public static final int PICKER_ROWS = 8;
     public static final int PICKER_COLUMNS = 6;
     public static final int LEFT_PICKER_X = 19;
@@ -49,6 +49,68 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
                 player.getInventory(), Component.empty());
         imageWidth = 286;
         imageHeight = 180;
+    }
+
+    @Override
+    public void onClose() {
+        minecraft.popGuiLayer();
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        menu.entries.clear();
+        for (int i = 0; i < PICKER_ROWS; i++) {
+            BrewingListEntry entry = new BrewingListEntry(i, leftPos + LEFT_PICKER_X, topPos + LEFT_PICKER_Y + i * 18,
+                    18 * PICKER_COLUMNS, 16, this::onEntryButtonClicked, this::applySliderValue, Component.empty());
+            entry.visible = false;
+            addRenderableWidget(entry);
+            menu.entries.add(entry);
+        }
+        menu.update();
+    }
+
+    private void onEntryButtonClicked(BrewingListEntry entry) {
+        ResourceLocation recipeId = menu.selectedRecipes.get(menu.getScrolledSelectedIdx(entry.index));
+        BrewingList.Config config = menu.builder.get(recipeId);
+        if (config.barrelPos().isEmpty()) {
+            minecraft.pushGuiLayer(new InventorySelectionScreen(minecraft.player, stack -> stack.is(MaidTavernItems.TARGET_SELECTION_TOOL), stack -> {
+                Set<BlockPos> targetPositions = stack.get(MaidTavernItems.TARGET_POS_DATA);
+                applyNewBarrelPositions(entry, recipeId, targetPositions);
+            }));
+        } else {
+            applyNewBarrelPositions(entry, recipeId, List.of());
+        }
+    }
+
+    private void applyNewBarrelPositions(BrewingListEntry entry, ResourceLocation recipeId, Collection<BlockPos> barrelPositions) {
+        BrewingList.Config oldConfig = menu.builder.get(recipeId);
+        BrewingList.Config.Builder builder = new BrewingList.Config.Builder(oldConfig);
+        builder.removeAllBarrelPos();
+        builder.addAllBarrelPos(barrelPositions);
+        BrewingList.Config newConfig = builder.build();
+        menu.builder.put(recipeId, newConfig);
+        entry.setButtonText(newConfig.barrelPos().isEmpty() ? Component.literal("+") : Component.literal("-"));
+
+    }
+
+    private void applySliderValue(BrewingListEntry entry) {
+        int value = entry.getSliderValue();
+        ResourceLocation recipeId = menu.selectedRecipes.get(menu.getScrolledSelectedIdx(entry.index));
+        BrewingList.Config config = menu.builder.get(recipeId);
+        BrewingList.Config.Builder builder = new BrewingList.Config.Builder(config);
+        builder.brewLevel(value);
+        menu.builder.put(recipeId, builder.build());
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (this.getFocused() != null && this.isDragging() && button == 0) {
+            if (this.getFocused().mouseDragged(mouseX, mouseY, button, dragX, dragY)) {
+                return true;
+            }
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override
@@ -77,7 +139,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(leftPos, topPos, 0);
         for (Slot slot : menu.slots) {
-            if (!slot.isActive()) continue;
+            if (!slot.isActive() || !slot.isHighlightable()) continue;
             if (!(slot instanceof GhostSlot ghostSlot)) continue;
             if (ghostSlot.highlightPredicate != null && ghostSlot.highlightPredicate.shouldRenderHighlight(ghostSlot, mouseX, mouseY)) {
                 renderSlotHighlight(guiGraphics, slot, mouseX, mouseY, partialTick);
@@ -99,7 +161,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        guiGraphics.blit(LIST_LOCATION, (width - 384) / 2, (height - 384) / 2, 0, 0, 384, 384, 512, 512);
+        guiGraphics.blit(BACKGROUND, (width - 384) / 2, (height - 384) / 2, 0, 0, 384, 384, 512, 512);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -113,7 +175,9 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
         private int selectedScrollRow;
         private int recipeScrollRow;
 
-        private final SimpleContainer selectedContainer = new SimpleContainer(PICKER_ROWS * PICKER_COLUMNS) {
+        private final List<BrewingListEntry> entries = new ArrayList<>();
+
+        private final SimpleContainer selectedContainer = new SimpleContainer(PICKER_ROWS) {
             @Override
             public int getMaxStackSize() {
                 return 1;
@@ -136,11 +200,9 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
             recipeMap = allRecipes.stream().collect(Collectors.toMap(RecipeHolder::id, RecipeHolder::value));
 
             for (int i = 0; i < PICKER_ROWS; i++) {
-                for (int j = 0; j < PICKER_COLUMNS; j++) {
-                    GhostSlot slot = new GhostSlot(selectedContainer, i * PICKER_COLUMNS + j, LEFT_PICKER_X + 18 * j, LEFT_PICKER_Y + 18 * i);
-                    slot.addListener(this::onSelectedSlotClicked);
-                    addSlot(slot);
-                }
+                GhostSlot slot = new GhostSlot(selectedContainer, i, LEFT_PICKER_X, LEFT_PICKER_Y + 18 * i);
+                slot.addListener(this::onSelectedSlotClicked);
+                addSlot(slot);
             }
 
             for (int i = 0; i < PICKER_ROWS; i++) {
@@ -156,7 +218,6 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
                     addSlot(slot);
                 }
             }
-            updateSlots();
         }
 
         public boolean canSelectedScroll() {
@@ -171,7 +232,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
             if (!canSelectedScroll()) return slot;
             int extraRows = getSelectedRows() - PICKER_ROWS;
             selectedScrollRow = Math.clamp(selectedScrollRow, 0, extraRows);
-            return selectedScrollRow * PICKER_COLUMNS + slot;
+            return selectedScrollRow + slot;
         }
 
         public int getScrolledRecipeIdx(int slot) {
@@ -183,12 +244,12 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
 
         public void selectedScrollTo(int scroll) {
             selectedScrollRow = scroll;
-            updateSlots();
+            update();
         }
 
         public void recipeScrollTo(int scroll) {
             recipeScrollRow = scroll;
-            updateSlots();
+            update();
         }
 
         private void onSelectedSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess) {
@@ -198,7 +259,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
                 ResourceLocation recipeId = selectedRecipes.get(idx);
                 builder.remove(recipeId);
                 selectedRecipes.remove(idx);
-                updateSlots();
+                update();
             }
         }
 
@@ -208,26 +269,46 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
             if (selectedRecipes.contains(recipeId)) return;
             builder.put(recipeId, BrewingList.Config.DEFAULT);
             selectedRecipes.add(recipeId);
-            updateSlots();
+            update();
         }
 
-        public void updateSlots() {
+        public void update() {
             selectedContainer.clearContent();
+            for (Slot slot : slots) {
+                GhostSlot ghostSlot = (GhostSlot) slot;
+                ghostSlot.setActive(false);
+            }
+            for (BrewingListEntry entry : entries) {
+                entry.visible = false;
+            }
             int selectedBeginIdx = getScrolledSelectedIdx(0);
             for (int i = selectedBeginIdx; i < selectedRecipes.size(); i++) {
-                int slot = i - selectedBeginIdx;
-                if (slot >= PICKER_ROWS * PICKER_COLUMNS) break;
+                int slotIdx = i - selectedBeginIdx;
+                if (slotIdx >= PICKER_ROWS) break;
                 ResourceLocation recipeId = selectedRecipes.get(i);
                 BarrelRecipe recipe = recipeMap.get(recipeId);
-                selectedContainer.setItem(slot, recipe.getResultItem(registries));
+                selectedContainer.setItem(slotIdx, recipe.getResultItem(registries));
+                GhostSlot slot = (GhostSlot) getSlot(slotIdx);
+                entries.get(slotIdx).visible = true;
+                slot.setActive(true);
             }
             recipeContainer.clearContent();
             int recipeBeginIdx = getScrolledRecipeIdx(0);
             for (int i = recipeBeginIdx; i < allRecipes.size(); i++) {
-                int slot = i - recipeBeginIdx;
-                if (slot >= PICKER_ROWS * PICKER_COLUMNS) break;
+                int slotIdx = i - recipeBeginIdx;
+                if (slotIdx >= PICKER_ROWS * PICKER_COLUMNS) break;
                 RecipeHolder<BarrelRecipe> recipe = allRecipes.get(i);
-                recipeContainer.setItem(slot, recipe.value().getResultItem(registries));
+                recipeContainer.setItem(slotIdx, recipe.value().getResultItem(registries));
+                GhostSlot slot = (GhostSlot) getSlot(slotIdx + PICKER_ROWS);
+                slot.setActive(true);
+            }
+
+            for (BrewingListEntry entry : entries) {
+                if (!entry.visible) continue;
+                ResourceLocation recipeId = selectedRecipes.get(getScrolledSelectedIdx(entry.index));
+                BrewingList.Config config = builder.get(recipeId);
+                entry.setSliderValue(config.brewLevel());
+                entry.setButtonText(config.barrelPos().isEmpty() ? Component.literal("+") : Component.literal("-"));
             }
         }
 
@@ -249,11 +330,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
         }
 
         public int getSelectedRows() {
-            return Mth.positiveCeilDiv(selectedRecipes.size(), getSelectedColumns());
-        }
-
-        public int getSelectedColumns() {
-            return PICKER_COLUMNS;
+            return selectedRecipes.size();
         }
 
         public int getRecipeRows() {

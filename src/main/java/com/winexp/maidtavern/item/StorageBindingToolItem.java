@@ -45,13 +45,19 @@ public class StorageBindingToolItem extends Item implements MaidInteractionItem,
             tooltipComponents.add(typeName);
             for (int i = 0; i < posList.size(); i++) {
                 if (!tooltipFlag.hasShiftDown() && i >= 4) {
-                    tooltipComponents.add(Component.literal("  ")
-                            .append(Component.translatable("item.maidtavern.storage_binding_tool.tooltip.remaining", posList.size() - i)));
+                    Component component = Component.literal("  ")
+                            .append(Component.translatable("item.maidtavern.storage_binding_tool.tooltip.remaining", posList.size() - i))
+                            .withStyle(ChatFormatting.GRAY);
+                    tooltipComponents.add(component);
                     break;
                 }
                 BlockPos pos = posList.get(i);
-                Component posComponent = Component.literal("  [").append(Component.literal(pos.toShortString())).append("]");
-                tooltipComponents.add(posComponent);
+                ChatFormatting color = selectedType == type ? ChatFormatting.WHITE : ChatFormatting.DARK_GRAY;
+                Component component = Component.literal("  [")
+                        .append(Component.literal(pos.toShortString()))
+                        .append("]")
+                        .withStyle(color);
+                tooltipComponents.add(component);
             }
         }
     }
@@ -75,7 +81,7 @@ public class StorageBindingToolItem extends Item implements MaidInteractionItem,
                 pitch = 0.9f;
             }
             stack.set(MaidTavernItems.STORAGE_BINDING_DATA, binding);
-            player.playNotifySound(SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.PLAYERS, 1, pitch);
+            player.playNotifySound(SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.PLAYERS, 0.8f, pitch);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
