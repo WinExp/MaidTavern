@@ -11,9 +11,10 @@
   "item.maidtavern.storage_binding_tool.tip.load": "Loaded the storage binding data",
   "item.maidtavern.storage_binding_tool.tip.save": "Saved the storage binding data",
   "item.maidtavern.storage_binding_tool.tip.binding_mode": "Binding mode: %s",
-  "item.maidtavern.storage_binding_tool.tooltip.remaining": "...%s positions remaining",
   "item.maidtavern.storage_binding_tool.type.ingredients": "Ingredients",
   "item.maidtavern.storage_binding_tool.type.results": "Results",
   "item.maidtavern.storage_binding_tool.type.byproducts": "Byproducts",
-  "item.maidtavern.target_selection_tool": "Target Selection Tool"
+  "item.maidtavern.target_selection_tool": "Target Selection Tool",
+  "item.maidtavern.target_selection_tool.tooltip.title": "Positions:",
+  "maidtavern.target_selection.tooltip.remaining": "...%s positions remaining"
 }

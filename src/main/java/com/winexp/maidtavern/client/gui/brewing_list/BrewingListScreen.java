@@ -8,14 +8,17 @@ import com.winexp.maidtavern.item.MaidTavernItems;
 import com.winexp.maidtavern.maid.brew.BrewingList;
 import com.winexp.maidtavern.menu.GhostSlot;
 import com.winexp.maidtavern.network.serverbound.ServerboundSetBrewingListPayload;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -90,8 +93,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
         builder.addAllBarrelPos(barrelPositions);
         BrewingList.Config newConfig = builder.build();
         menu.builder.put(recipeId, newConfig);
-        entry.setButtonText(newConfig.barrelPos().isEmpty() ? Component.literal("+") : Component.literal("-"));
-
+        menu.updateEntry(entry);
     }
 
     private void applySliderValue(BrewingListEntry entry) {
@@ -304,12 +306,33 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
             }
 
             for (BrewingListEntry entry : entries) {
-                if (!entry.visible) continue;
-                ResourceLocation recipeId = selectedRecipes.get(getScrolledSelectedIdx(entry.index));
-                BrewingList.Config config = builder.get(recipeId);
-                entry.setSliderValue(config.brewLevel());
-                entry.setButtonText(config.barrelPos().isEmpty() ? Component.literal("+") : Component.literal("-"));
+                updateEntry(entry);
             }
+        }
+
+        public void updateEntry(BrewingListEntry entry) {
+            if (!entry.visible) return;
+            ResourceLocation recipeId = selectedRecipes.get(getScrolledSelectedIdx(entry.index));
+            BrewingList.Config config = builder.get(recipeId);
+            entry.setSliderValue(config.brewLevel());
+            entry.setButtonText(config.barrelPos().isEmpty() ? Component.literal("+") : Component.literal("-"));
+            entry.setButtonTooltip(getButtonTooltip(List.copyOf(config.barrelPos())));
+        }
+
+        private Tooltip getButtonTooltip(List<BlockPos> positions) {
+            MutableComponent tooltip = Component.empty();
+            for (int i = 0; i < positions.size(); i++) {
+                BlockPos pos = positions.get(i);
+                Component component = Component.literal("[")
+                        .append(Component.literal(pos.toShortString()))
+                        .append("]")
+                        .withStyle(ChatFormatting.WHITE);
+                tooltip.append(component);
+                if (i < positions.size() - 1) {
+                    tooltip.append("\n");
+                }
+            }
+            return Tooltip.create(tooltip);
         }
 
         @Override

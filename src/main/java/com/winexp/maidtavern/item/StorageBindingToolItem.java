@@ -46,7 +46,7 @@ public class StorageBindingToolItem extends Item implements MaidInteractionItem,
             for (int i = 0; i < posList.size(); i++) {
                 if (!tooltipFlag.hasShiftDown() && i >= 4) {
                     Component component = Component.literal("  ")
-                            .append(Component.translatable("item.maidtavern.storage_binding_tool.tooltip.remaining", posList.size() - i))
+                            .append(Component.translatable("maidtavern.target_selection.tooltip.remaining", posList.size() - i))
                             .withStyle(ChatFormatting.GRAY);
                     tooltipComponents.add(component);
                     break;

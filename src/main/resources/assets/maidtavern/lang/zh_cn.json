@@ -11,9 +11,10 @@
   "item.maidtavern.storage_binding_tool.tip.load": "已加载绑定信息",
   "item.maidtavern.storage_binding_tool.tip.save": "已保存绑定信息",
   "item.maidtavern.storage_binding_tool.tip.binding_mode": "绑定模式：%s",
-  "item.maidtavern.storage_binding_tool.tooltip.remaining": "...剩余 %s 个坐标",
   "item.maidtavern.storage_binding_tool.type.ingredients": "原料",
   "item.maidtavern.storage_binding_tool.type.results": "产物",
   "item.maidtavern.storage_binding_tool.type.byproducts": "副产物",
-  "item.maidtavern.target_selection_tool": "目标选择工具"
+  "item.maidtavern.target_selection_tool": "目标选择工具",
+  "item.maidtavern.target_selection_tool.tooltip.title": "坐标：",
+  "maidtavern.target_selection.tooltip.remaining": "...剩余 %s 个坐标"
 }
