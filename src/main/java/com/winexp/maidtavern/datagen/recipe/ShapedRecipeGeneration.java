@@ -19,7 +19,7 @@ public class ShapedRecipeGeneration extends MaidTavernRecipeProvider {
 
     @Override
     public void buildRecipes(RecipeOutput output) {
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, MaidTavernItems.BARREL_BINDING_TOOL)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, MaidTavernItems.BARREL_SELECTION_TOOL)
                 .pattern("#X#")
                 .pattern("X1X")
                 .pattern("#X#")

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "maidtavern:item/barrel_binding_tool/closed"
+    "layer0": "maidtavern:item/barrel_selection_tool/closed"
   }
 }

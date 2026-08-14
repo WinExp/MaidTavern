@@ -3,11 +3,11 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "maidtavern:barrel_binding_tool"
+      "item": "maidtavern:brewing_list"
     }
   ],
   "result": {
     "count": 1,
-    "id": "maidtavern:barrel_binding_tool"
+    "id": "maidtavern:brewing_list"
   }
 }

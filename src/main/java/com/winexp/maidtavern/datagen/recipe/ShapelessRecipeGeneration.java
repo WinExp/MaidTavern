@@ -30,8 +30,9 @@ public class ShapelessRecipeGeneration extends MaidTavernRecipeProvider {
                         .of(ModItems.GRAPE)))
                 .save(output);
 
+        resetData(RecipeCategory.MISC, MaidTavernItems.BREWING_LIST, output);
         resetData(RecipeCategory.MISC, MaidTavernItems.STORAGE_BINDING_TOOL, output);
-        resetData(RecipeCategory.MISC, MaidTavernItems.BARREL_BINDING_TOOL, output);
+        resetData(RecipeCategory.MISC, MaidTavernItems.BARREL_SELECTION_TOOL, output);
     }
 
     public void resetData(RecipeCategory category, ItemLike itemLike, RecipeOutput output) {

@@ -53,9 +53,9 @@ public class MaidTavernItems {
                             .component(STORAGE_BINDING_TYPE_DATA, StorageBinding.Type.INGREDIENTS)
                             .stacksTo(1)));
 
-    public static final DeferredItem<BarrelBindingToolItem> BARREL_BINDING_TOOL = ITEMS
-            .register("barrel_binding_tool", () ->
-                    new BarrelBindingToolItem(new Item.Properties()
+    public static final DeferredItem<BarrelSelectionToolItem> BARREL_SELECTION_TOOL = ITEMS
+            .register("barrel_selection_tool", () ->
+                    new BarrelSelectionToolItem(new Item.Properties()
                             .component(BARREL_POSITIONS_DATA, ImmutableSet.of())
                             .stacksTo(1)));
 

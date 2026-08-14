@@ -21,11 +21,11 @@ public class ItemModelGeneration extends ItemModelProvider {
         basicItem(MaidTavernItems.BREWING_LIST.get());
         basicItem(MaidTavernItems.STORAGE_BINDING_TOOL.get());
 
-        ResourceLocation id = MaidTavernItems.BARREL_BINDING_TOOL.getId();
+        ResourceLocation id = MaidTavernItems.BARREL_SELECTION_TOOL.getId();
         this.getBuilder(id.withPrefix("item/").withSuffix("/closed").toString()).parent(new ModelFile.UncheckedModelFile("item/generated"))
                 .texture("layer0", id.withPrefix("item/").withSuffix("/closed"));
         id = id.withPrefix("item/");
-        basicItem(MaidTavernItems.BARREL_BINDING_TOOL.get(), "/opened").override()
+        basicItem(MaidTavernItems.BARREL_SELECTION_TOOL.get(), "/opened").override()
                 .model(getExistingFile(id.withSuffix("/closed")))
                 .predicate(ResourceLocation.withDefaultNamespace("custom_model_data"), 100);
     }

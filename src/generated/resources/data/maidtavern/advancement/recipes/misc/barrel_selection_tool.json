@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_barrel_binding_tool": {
+    "has_barrel": {
       "conditions": {
         "items": [
           {
-            "items": "maidtavern:barrel_binding_tool"
+            "items": "kaleidoscope_tavern:barrel"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "maidtavern:barrel_binding_tool/reset_data"
+        "recipe": "maidtavern:barrel_selection_tool"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_barrel_binding_tool"
+      "has_barrel"
     ]
   ],
   "rewards": {
     "recipes": [
-      "maidtavern:barrel_binding_tool/reset_data"
+      "maidtavern:barrel_selection_tool"
     ]
   }
 }

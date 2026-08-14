@@ -21,8 +21,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.LinkedList;
 import java.util.List;
 
-public class BarrelBindingToolItem extends Item {
-    public BarrelBindingToolItem(Properties properties) {
+public class BarrelSelectionToolItem extends Item {
+    public BarrelSelectionToolItem(Properties properties) {
         super(properties);
     }
 
@@ -64,7 +64,7 @@ public class BarrelBindingToolItem extends Item {
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         List<BlockPos> positions = List.copyOf(stack.get(MaidTavernItems.BARREL_POSITIONS_DATA));
         if (positions.isEmpty()) return;
-        tooltipComponents.add(Component.translatable("item.maidtavern.barrel_binding_tool.tooltip.title").withStyle(ChatFormatting.GRAY));
+        tooltipComponents.add(Component.translatable("item.maidtavern.barrel_selection_tool.tooltip.title").withStyle(ChatFormatting.GRAY));
         for (int i = 0; i < positions.size(); i++) {
             if (!tooltipFlag.hasShiftDown() && i >= 4) {
                 Component component = Component.literal("  ")
