@@ -90,7 +90,9 @@ public class MaidBrewMoveToStorageTask extends MaidSurroundingMoveTask {
             if (binding == null || binding.byproducts().contains(pos)) return true;
         }
 
-        for (BrewingList.Entry entry : brewingList.getEntries()) {
+        List<BrewingList.Entry> entries = new ArrayList<>(brewingList.getEntries());
+        Collections.shuffle(entries);
+        for (BrewingList.Entry entry : entries) {
             BrewingList.Config config = entry.config();
             List<BlockPos> barrelPosList = new ArrayList<>(config.barrelPos());
             Collections.shuffle(barrelPosList);

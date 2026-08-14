@@ -18,6 +18,10 @@ import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class MaidBrewMoveToBarrelTask extends MaidSurroundingMoveTask {
     public static final BoundingBox MOVE_RANGE = new BoundingBox(-2, -1, -2, 2, 1, 2);;
 
@@ -44,7 +48,9 @@ public class MaidBrewMoveToBarrelTask extends MaidSurroundingMoveTask {
         if (brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())) return true;
         BrewingList brewingList = brain.getMemory(MaidTavernEntities.BREWING_LIST.get()).orElse(null);
         if (brewingList == null) return false;
-        for (BrewingList.Entry entry : brewingList.getEntries()) {
+        List<BrewingList.Entry> entries = new ArrayList<>(brewingList.getEntries());
+        Collections.shuffle(entries);
+        for (BrewingList.Entry entry : entries) {
             ResourceLocation recipeId = entry.recipeId();
             if (task.hasIngredients(maid, recipeId)) {
                 selectedEntry = entry;
