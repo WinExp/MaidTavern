@@ -1,83 +1,62 @@
 package com.winexp.maidtavern.maid.brew.barrel;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
-import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
 import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.BarrelBlock;
 import com.github.ysbbbbbb.kaleidoscopetavern.crafting.recipe.BarrelRecipe;
 import com.google.common.collect.ImmutableMap;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.brew.BrewingSession;
-import com.winexp.maidtavern.maid.brew.IBrewTask;
+import com.winexp.maidtavern.maid.brew.*;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
-import net.minecraft.world.entity.ai.behavior.PositionTracker;
-import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
-import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
+public class MaidBrewAddIngredientsTask extends Behavior<EntityMaid> {
     private final IBrewTask task;
-    private final double closeEnoughDist;
     private final int stepCooldown;
     private int cooldown;
 
-    public MaidBrewAddIngredientTask(IBrewTask task, double closeEnoughDist, int stepCooldown) {
+    public MaidBrewAddIngredientsTask(IBrewTask task, int stepCooldown) {
         super(ImmutableMap.of(
-                InitEntities.TARGET_POS.get(), MemoryStatus.VALUE_PRESENT,
+                MaidTavernEntities.BREWING_WORK.get(), MemoryStatus.VALUE_PRESENT,
                 MaidTavernEntities.BREWING_SESSION.get(), MemoryStatus.VALUE_PRESENT
         ));
         this.task = task;
-        this.closeEnoughDist = closeEnoughDist;
         this.stepCooldown = stepCooldown;
     }
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
-        Brain<EntityMaid> brain = maid.getBrain();
+        if (!MaidBrewingStateManager.isSameWorkType(maid, BrewingWorkTypes.ADD_INGREDIENTS)) return false;
+        BrewingWork work = MaidBrewingStateManager.getWork(maid);
         BrewingSession session = getSession(maid);
         if (!session.stage().isBrewing()) {
-            brain.eraseMemory(InitEntities.TARGET_POS.get());
-            clearSession(maid);
+            stop(maid);
             return false;
         }
         BlockPos pos = session.barrelPos().orElse(null);
         if (pos == null) {
-            brain.eraseMemory(InitEntities.TARGET_POS.get());
-            clearSession(maid);
+            stop(maid);
             return false;
         }
         BlockState state = level.getBlockState(pos);
         IBarrel barrel = BarrelBlock.getBarrelEntity(level, pos, state);
         if (!task.isBarrelValid(maid, barrel) || !task.hasIngredients(maid, session.entry().recipeId())) {
-            brain.eraseMemory(InitEntities.TARGET_POS.get());
-            clearSession(maid);
+            stop(maid);
             return false;
         }
 
-        PositionTracker targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).get();
-        Vec3 targetV3d = targetPos.currentPosition();
-        if (maid.distanceToSqr(targetV3d) > Math.pow(closeEnoughDist, 2)) {
-            Optional<WalkTarget> walkTarget = brain.getMemory(MemoryModuleType.WALK_TARGET);
-            if (walkTarget.isEmpty() || !walkTarget.get().getTarget().currentPosition().equals(targetV3d)) {
-                brain.eraseMemory(InitEntities.TARGET_POS.get());
-            }
-            return false;
-        }
-        return true;
+        return work.isCloseEnough(maid);
     }
 
     @Override
@@ -141,7 +120,10 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
             clearSession(maid);
             cooldown = stepCooldown;
         }
-        if (cooldown > 0) maid.swing(InteractionHand.MAIN_HAND);
+        if (cooldown > 0) {
+            maid.swing(InteractionHand.MAIN_HAND);
+            MaidBrewingStateManager.resetWorkTime(maid);
+        }
     }
 
     private @Nullable BrewingSession getSession(EntityMaid maid) {
@@ -163,8 +145,11 @@ public class MaidBrewAddIngredientTask extends Behavior<EntityMaid> {
 
     @Override
     protected void stop(ServerLevel level, EntityMaid maid, long gameTime) {
-        Brain<EntityMaid> brain = maid.getBrain();
-        brain.eraseMemory(InitEntities.TARGET_POS.get());
+        stop(maid);
+    }
+
+    private void stop(EntityMaid maid) {
+        MaidBrewingStateManager.stopWork(maid);
         clearSession(maid);
     }
 }

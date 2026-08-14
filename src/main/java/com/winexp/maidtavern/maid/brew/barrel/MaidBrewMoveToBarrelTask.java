@@ -6,9 +6,7 @@ import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
 import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.BarrelBlock;
 import com.github.ysbbbbbb.kaleidoscopetavern.blockentity.brew.BarrelBlockEntity;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.brew.BrewingList;
-import com.winexp.maidtavern.maid.brew.BrewingSession;
-import com.winexp.maidtavern.maid.brew.IBrewTask;
+import com.winexp.maidtavern.maid.brew.*;
 import com.winexp.maidtavern.maid.task.MaidSurroundingMoveTask;
 import com.winexp.maidtavern.util.MaidUtil;
 import net.minecraft.core.BlockPos;
@@ -16,7 +14,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
-import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
@@ -26,12 +23,14 @@ public class MaidBrewMoveToBarrelTask extends MaidSurroundingMoveTask {
 
     private final IBrewTask task;
     private final float movementSpeed;
+    private final double closeEnoughDist;
     private BrewingList.Entry selectedEntry;
 
-    public MaidBrewMoveToBarrelTask(IBrewTask task, float movementSpeed, int verticalSearchRange) {
+    public MaidBrewMoveToBarrelTask(IBrewTask task, float movementSpeed, int verticalSearchRange, double closeEnoughDist) {
         super(movementSpeed, verticalSearchRange);
         this.task = task;
         this.movementSpeed = movementSpeed;
+        this.closeEnoughDist = closeEnoughDist;
         setMaxCheckRate(20);
         moveRange = MOVE_RANGE;
     }
@@ -41,7 +40,7 @@ public class MaidBrewMoveToBarrelTask extends MaidSurroundingMoveTask {
         selectedEntry = null;
         Brain<EntityMaid> brain = maid.getBrain();
         if (!super.checkExtraStartConditions(level, maid)
-                || brain.hasMemoryValue(InitEntities.TARGET_POS.get())) return false;
+                || MaidBrewingStateManager.isWorking(maid)) return false;
         if (brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())) return true;
         BrewingList brewingList = brain.getMemory(MaidTavernEntities.BREWING_LIST.get()).orElse(null);
         if (brewingList == null) return false;
@@ -64,12 +63,11 @@ public class MaidBrewMoveToBarrelTask extends MaidSurroundingMoveTask {
             BlockPos barrelPos = session.barrelPos().orElse(null);
             if (barrelPos == null) {
                 searchForDestination(level, maid);
-                BlockPos targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).map(PositionTracker::currentBlockPosition).orElse(null);
-                if (targetPos == null) {
+                barrelPos = brain.getMemory(InitEntities.TARGET_POS.get()).map(PositionTracker::currentBlockPosition).orElse(null);
+                if (barrelPos == null) {
                     brain.eraseMemory(MaidTavernEntities.BREWING_SESSION.get());
                     return;
                 }
-                barrelPos = targetPos;
                 brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), session.withBarrelPos(barrelPos.below(2)));
             } else barrelPos = barrelPos.above(2);
             BlockState barrelState = level.getBlockState(barrelPos);
@@ -79,12 +77,14 @@ public class MaidBrewMoveToBarrelTask extends MaidSurroundingMoveTask {
                 return;
             }
             BehaviorUtils.setWalkAndLookTargetMemories(maid, barrelPos, movementSpeed, 0);
-            brain.setMemory(InitEntities.TARGET_POS.get(), new BlockPosTracker(barrelPos));
+            MaidBrewingStateManager.startWork(maid, new BrewingWork(BrewingWorkTypes.ADD_INGREDIENTS, barrelPos, movementSpeed, closeEnoughDist));
         } else {
             searchForDestination(level, maid);
             var targetPos = brain.getMemory(InitEntities.TARGET_POS.get());
-            targetPos.map(PositionTracker::currentBlockPosition).ifPresent(pos ->
-                    brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), new BrewingSession(selectedEntry, pos.below(2), BrewingSession.Stage.START_BREWING)));
+            targetPos.map(PositionTracker::currentBlockPosition).ifPresent(pos -> {
+                brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), new BrewingSession(selectedEntry, pos.below(2), BrewingSession.Stage.START_BREWING));
+                MaidBrewingStateManager.startWork(maid, new BrewingWork(BrewingWorkTypes.ADD_INGREDIENTS, pos, movementSpeed, closeEnoughDist));
+            });
         }
     }
 

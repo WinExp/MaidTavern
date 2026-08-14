@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.maid.brew.BrewingList;
 import com.winexp.maidtavern.maid.brew.BrewingSession;
+import com.winexp.maidtavern.maid.brew.BrewingWork;
 import com.winexp.maidtavern.maid.brew.StorageBinding;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -26,6 +27,13 @@ public class MaidTavernEntities {
 
     public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<StorageBinding>> STORAGE_BINDING = MEMORY_MODULE_TYPES
             .register("storage_binding", () -> new MemoryModuleType<>(Optional.of(StorageBinding.CODEC)));
+
+    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<BrewingWork>> BREWING_WORK = MEMORY_MODULE_TYPES
+            .register("brewing_work", () -> new MemoryModuleType<>(Optional.of(BrewingWork.CODEC)));
+    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Integer>> PATHFINDING_ATTEMPT = MEMORY_MODULE_TYPES
+            .register("pathfinding_attempt", () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
+    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Integer>> BREWING_WORK_TIME = MEMORY_MODULE_TYPES
+            .register("brewing_work_time", () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
 
     public static void register(IEventBus modEventBus) {
         MEMORY_MODULE_TYPES.register(modEventBus);

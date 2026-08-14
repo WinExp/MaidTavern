@@ -6,10 +6,7 @@ import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.BarrelBlock;
 import com.mojang.datafixers.util.Pair;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.brew.BrewingList;
-import com.winexp.maidtavern.maid.brew.BrewingSession;
-import com.winexp.maidtavern.maid.brew.IBrewTask;
-import com.winexp.maidtavern.maid.brew.StorageBinding;
+import com.winexp.maidtavern.maid.brew.*;
 import com.winexp.maidtavern.maid.task.MaidSurroundingMoveTask;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import com.winexp.maidtavern.util.MaidUtil;
@@ -30,13 +27,17 @@ import java.util.List;
 
 public class MaidBrewMoveToStorageTask extends MaidSurroundingMoveTask {
     private final IBrewTask task;
+    private final float movementSpeed;
+    private final double closeEnoughDist;
     private @Nullable MaidPathFindingBFS pathFinding;
     private @Nullable BlockPos selectedBarrelPos;
     private @Nullable BrewingList.Entry selectedEntry;
 
-    public MaidBrewMoveToStorageTask(IBrewTask task, float movementSpeed, int verticalSearchRange) {
+    public MaidBrewMoveToStorageTask(IBrewTask task, float movementSpeed, int verticalSearchRange, double closeEnoughDist) {
         super(movementSpeed, verticalSearchRange);
         this.task = task;
+        this.movementSpeed = movementSpeed;
+        this.closeEnoughDist = closeEnoughDist;
         setMaxCheckRate(20);
         moveRange = new BoundingBox(-1, -2, -1, 1, 1, 1);
     }
@@ -45,7 +46,7 @@ public class MaidBrewMoveToStorageTask extends MaidSurroundingMoveTask {
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
         Brain<EntityMaid> brain = maid.getBrain();
         if (!super.checkExtraStartConditions(level, maid)
-                || brain.hasMemoryValue(InitEntities.TARGET_POS.get())
+                || MaidBrewingStateManager.isWorking(maid)
                 || brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())
                 || !brain.hasMemoryValue(MaidTavernEntities.BREWING_LIST.get())) return false;
         return task.shouldExtract(maid) || !task.getResultsToInsert(maid).isEmpty() || !task.getByproductsToInsert(maid).isEmpty();
@@ -57,6 +58,9 @@ public class MaidBrewMoveToStorageTask extends MaidSurroundingMoveTask {
         selectedEntry = null;
         Brain<EntityMaid> brain = maid.getBrain();
         searchForDestination(level, maid);
+        var targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).orElse(null);
+        if (targetPos == null) return;
+        MaidBrewingStateManager.startWork(maid, new BrewingWork(BrewingWorkTypes.STORAGE, targetPos.currentBlockPosition(), movementSpeed, closeEnoughDist));
         if (selectedEntry != null) {
             brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), BrewingSession.create(selectedEntry, selectedBarrelPos));
         }
