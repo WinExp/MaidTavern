@@ -58,6 +58,5 @@ public class MaidBrewTakeBottleTask extends Behavior<EntityMaid> {
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL);
         maid.swing(InteractionHand.MAIN_HAND);
         level.playSound(null, pos, SoundType.STONE.getPlaceSound(), maid.getSoundSource(), 1.0f, 1.0f);
-        MaidBrewingStateManager.resetWorkTime(maid);
     }
 }

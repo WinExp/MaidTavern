@@ -122,7 +122,6 @@ public class MaidBrewAddIngredientsTask extends Behavior<EntityMaid> {
         }
         if (cooldown > 0) {
             maid.swing(InteractionHand.MAIN_HAND);
-            MaidBrewingStateManager.resetWorkTime(maid);
         }
     }
 

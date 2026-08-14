@@ -72,13 +72,13 @@ public class MaidBrewPreTickTask extends Behavior<EntityMaid> {
         }
 
         if (MaidBrewingStateManager.isWorking(maid)) {
-            Integer pathfindingAttempt = brain.getMemory(MaidTavernEntities.PATHFINDING_ATTEMPT.get()).orElse(null);
+            Integer pathfindingAttempt = brain.getMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get()).orElse(null);
             if (pathfindingAttempt == null) {
-                brain.setMemory(MaidTavernEntities.PATHFINDING_ATTEMPT.get(), 0);
+                brain.setMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get(), 0);
             }
-            Integer time = brain.getMemory(MaidTavernEntities.BREWING_WORK_TIME.get()).orElse(null);
+            Integer time = brain.getMemory(MaidTavernEntities.PATH_FINDING_TIME.get()).orElse(null);
             if (time == null) {
-                brain.setMemory(MaidTavernEntities.BREWING_WORK_TIME.get(), 0);
+                brain.setMemory(MaidTavernEntities.PATH_FINDING_TIME.get(), 0);
             }
         }
     }
@@ -87,9 +87,15 @@ public class MaidBrewPreTickTask extends Behavior<EntityMaid> {
         Brain<EntityMaid> brain = maid.getBrain();
         BrewingWork work = MaidBrewingStateManager.getWork(maid);
         if (work == null) return;
-        int time = brain.getMemory(MaidTavernEntities.BREWING_WORK_TIME.get()).get() + 1;
+        int time = brain.getMemory(MaidTavernEntities.PATH_FINDING_TIME.get()).get() + 1;
+        if (work.isCloseEnough(maid)) {
+            if (time != 1) {
+                brain.setMemory(MaidTavernEntities.PATH_FINDING_TIME.get(), 0);
+            }
+            return;
+        }
         if (time <= 300) {
-            brain.setMemory(MaidTavernEntities.BREWING_WORK_TIME.get(), time);
+            brain.setMemory(MaidTavernEntities.PATH_FINDING_TIME.get(), time);
         } else {
             MaidBrewingStateManager.stopWork(maid);
             MaidTavern.LOGGER.warn("Work {} is stopped accidentally by expiration", work.type());
@@ -104,10 +110,10 @@ public class MaidBrewPreTickTask extends Behavior<EntityMaid> {
         if (!work.isCloseEnough(maid)) {
             Optional<WalkTarget> walkTarget = brain.getMemory(MemoryModuleType.WALK_TARGET);
             if (walkTarget.isEmpty() || !walkTarget.get().getTarget().currentPosition().equals(pos.getCenter())) {
-                int attempt = brain.getMemory(MaidTavernEntities.PATHFINDING_ATTEMPT.get()).get() + 1;
+                int attempt = brain.getMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get()).get() + 1;
                 if (attempt <= 2 && getOrCreateArrivalMap(maid).canPathReach(pos)) {
                     BehaviorUtils.setWalkAndLookTargetMemories(maid, pos, work.movementSpeed(), 0);
-                    brain.setMemory(MaidTavernEntities.PATHFINDING_ATTEMPT.get(), attempt);
+                    brain.setMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get(), attempt);
                 } else {
                     MaidBrewingStateManager.stopWork(maid);
                     MaidTavern.LOGGER.warn("Work {} is stopped accidentally by path finding check", work.type());

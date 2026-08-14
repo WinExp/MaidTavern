@@ -47,17 +47,8 @@ public class MaidBrewingStateManager {
         }
         Brain<EntityMaid> brain = maid.getBrain();
         brain.setMemory(MaidTavernEntities.BREWING_WORK.get(), work);
-        brain.setMemory(MaidTavernEntities.PATHFINDING_ATTEMPT.get(), 0);
-        brain.setMemory(MaidTavernEntities.BREWING_WORK_TIME.get(), 0);
-    }
-
-    public static void resetWorkTime(EntityMaid maid) {
-        ensureIsBrewTask(maid);
-        if (!isWorking(maid)) {
-            throw new IllegalStateException();
-        }
-        Brain<EntityMaid> brain = maid.getBrain();
-        brain.setMemory(MaidTavernEntities.BREWING_WORK_TIME.get(), 0);
+        brain.setMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get(), 0);
+        brain.setMemory(MaidTavernEntities.PATH_FINDING_TIME.get(), 0);
     }
 
     public static void stopWork(EntityMaid maid) {
@@ -67,7 +58,7 @@ public class MaidBrewingStateManager {
         }
         Brain<EntityMaid> brain = maid.getBrain();
         brain.eraseMemory(MaidTavernEntities.BREWING_WORK.get());
-        brain.eraseMemory(MaidTavernEntities.PATHFINDING_ATTEMPT.get());
-        brain.eraseMemory(MaidTavernEntities.BREWING_WORK_TIME.get());
+        brain.eraseMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get());
+        brain.eraseMemory(MaidTavernEntities.PATH_FINDING_TIME.get());
     }
 }

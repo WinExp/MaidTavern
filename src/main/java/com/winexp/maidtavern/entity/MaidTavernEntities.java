@@ -30,10 +30,10 @@ public class MaidTavernEntities {
 
     public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<BrewingWork>> BREWING_WORK = MEMORY_MODULE_TYPES
             .register("brewing_work", () -> new MemoryModuleType<>(Optional.of(BrewingWork.CODEC)));
-    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Integer>> PATHFINDING_ATTEMPT = MEMORY_MODULE_TYPES
-            .register("pathfinding_attempt", () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
-    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Integer>> BREWING_WORK_TIME = MEMORY_MODULE_TYPES
-            .register("brewing_work_time", () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
+    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Integer>> PATH_FINDING_ATTEMPT = MEMORY_MODULE_TYPES
+            .register("path_finding_attempt", () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
+    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Integer>> PATH_FINDING_TIME = MEMORY_MODULE_TYPES
+            .register("path_finding_time", () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
 
     public static void register(IEventBus modEventBus) {
         MEMORY_MODULE_TYPES.register(modEventBus);
