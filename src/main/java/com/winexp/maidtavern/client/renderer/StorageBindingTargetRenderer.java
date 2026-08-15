@@ -4,7 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.winexp.maidtavern.item.MaidTavernItems;
-import com.winexp.maidtavern.maid.brew.StorageBinding;
+import com.winexp.maidtavern.maid.brewing.StorageBinding;
 import com.winexp.maidtavern.util.RenderUtil;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;

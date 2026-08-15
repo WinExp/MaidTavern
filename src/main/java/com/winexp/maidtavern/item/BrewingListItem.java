@@ -3,8 +3,8 @@ package com.winexp.maidtavern.item;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.winexp.maidtavern.util.ScreenUtil;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.brew.BrewingList;
-import com.winexp.maidtavern.maid.brew.IBrewTask;
+import com.winexp.maidtavern.maid.brewing.BrewingList;
+import com.winexp.maidtavern.maid.brewing.IBrewingTask;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -34,7 +34,7 @@ public class BrewingListItem extends Item implements MaidInteractionItem {
 
     @Override
     public boolean useOnMaid(Level level, Player player, EntityMaid maid, ItemStack stack) {
-        if (!(maid.getTask() instanceof IBrewTask)) return false;
+        if (!(maid.getTask() instanceof IBrewingTask)) return false;
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide) {
                 BrewingList brewingList = maid.getBrain().getMemory(MaidTavernEntities.BREWING_LIST.get()).orElse(BrewingList.DEFAULT);

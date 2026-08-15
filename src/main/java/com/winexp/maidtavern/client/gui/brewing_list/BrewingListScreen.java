@@ -5,7 +5,7 @@ import com.github.ysbbbbbb.kaleidoscopetavern.init.ModRecipes;
 import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.client.gui.brewing_list.widget.BrewingListEntry;
 import com.winexp.maidtavern.item.MaidTavernItems;
-import com.winexp.maidtavern.maid.brew.BrewingList;
+import com.winexp.maidtavern.maid.brewing.BrewingList;
 import com.winexp.maidtavern.menu.GhostSlot;
 import com.winexp.maidtavern.network.serverbound.ServerboundSetBrewingListPayload;
 import net.minecraft.ChatFormatting;

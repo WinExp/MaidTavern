@@ -1,4 +1,4 @@
-package com.winexp.maidtavern.maid.brew;
+package com.winexp.maidtavern.maid.brewing;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;

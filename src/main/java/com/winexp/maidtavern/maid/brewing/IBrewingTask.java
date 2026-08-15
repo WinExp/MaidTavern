@@ -1,4 +1,4 @@
-package com.winexp.maidtavern.maid.brew;
+package com.winexp.maidtavern.maid.brewing;
 
 import com.github.tartaricacid.touhoulittlemaid.api.task.IMaidTask;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public interface IBrewTask extends IMaidTask {
+public interface IBrewingTask extends IMaidTask {
     @Contract("_, null -> false")
     boolean isBarrelValid(EntityMaid maid, @Nullable IBarrel barrel);
 

@@ -2,8 +2,8 @@ package com.winexp.maidtavern.item;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.brew.StorageBinding;
-import com.winexp.maidtavern.maid.brew.TaskBrew;
+import com.winexp.maidtavern.maid.brewing.StorageBinding;
+import com.winexp.maidtavern.maid.brewing.TaskBrewing;
 import com.winexp.maidtavern.network.serverbound.ServerboundSetStorageBindingTypePayload;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.LocalPlayer;
@@ -71,16 +71,16 @@ public class StorageBindingToolItem extends Item implements MaidInteractionItem,
         ItemStack stack = context.getItemInHand();
         StorageBinding binding = stack.get(MaidTavernItems.STORAGE_BINDING_DATA);
         StorageBinding.Type type = stack.get(MaidTavernItems.STORAGE_BINDING_TYPE_DATA);
-        if (!level.isClientSide) {
-            float pitch;
-            if (binding.get(type).contains(pos)) {
-                binding = binding.remove(type, pos);
-                pitch = 0.8f;
-            } else {
-                binding = binding.add(type, pos);
-                pitch = 0.9f;
-            }
-            stack.set(MaidTavernItems.STORAGE_BINDING_DATA, binding);
+        float pitch;
+        if (binding.get(type).contains(pos)) {
+            binding = binding.remove(type, pos);
+            pitch = 0.8f;
+        } else {
+            binding = binding.add(type, pos);
+            pitch = 0.9f;
+        }
+        stack.set(MaidTavernItems.STORAGE_BINDING_DATA, binding);
+        if (level.isClientSide) {
             player.playNotifySound(SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.PLAYERS, 0.8f, pitch);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
@@ -88,7 +88,7 @@ public class StorageBindingToolItem extends Item implements MaidInteractionItem,
 
     @Override
     public boolean useOnMaid(Level level, Player player, EntityMaid maid, ItemStack stack) {
-        if (!(maid.getTask() instanceof TaskBrew)) return false;
+        if (!(maid.getTask() instanceof TaskBrewing)) return false;
         if (!level.isClientSide) {
             if (player.isShiftKeyDown()) {
                 StorageBinding binding = maid.getBrain().getMemory(MaidTavernEntities.STORAGE_BINDING.get()).orElse(StorageBinding.EMPTY);

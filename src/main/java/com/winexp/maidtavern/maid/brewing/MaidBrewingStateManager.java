@@ -1,4 +1,4 @@
-package com.winexp.maidtavern.maid.brew;
+package com.winexp.maidtavern.maid.brewing;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class MaidBrewingStateManager {
     private static void ensureIsBrewTask(EntityMaid maid) {
-        if (!(maid.getTask() instanceof IBrewTask)) {
+        if (!(maid.getTask() instanceof IBrewingTask)) {
             throw new IllegalStateException();
         }
     }
@@ -60,5 +60,14 @@ public class MaidBrewingStateManager {
         brain.eraseMemory(MaidTavernEntities.BREWING_WORK.get());
         brain.eraseMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get());
         brain.eraseMemory(MaidTavernEntities.PATH_FINDING_TIME.get());
+    }
+
+    public static int getRotationCounter(EntityMaid maid) {
+        return maid.getBrain().getMemory(MaidTavernEntities.BREWING_LIST_ROTATION_COUNTER.get()).orElse(0);
+    }
+
+    public static void addRotationCounter(EntityMaid maid) {
+        int count = getRotationCounter(maid) + 1;
+        maid.getBrain().setMemory(MaidTavernEntities.BREWING_LIST_ROTATION_COUNTER.get(), count % 16384);
     }
 }

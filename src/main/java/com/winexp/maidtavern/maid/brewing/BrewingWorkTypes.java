@@ -1,4 +1,4 @@
-package com.winexp.maidtavern.maid.brew;
+package com.winexp.maidtavern.maid.brewing;
 
 import com.winexp.maidtavern.MaidTavern;
 import net.minecraft.resources.ResourceLocation;

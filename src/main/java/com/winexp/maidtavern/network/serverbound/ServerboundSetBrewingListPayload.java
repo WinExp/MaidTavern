@@ -2,7 +2,7 @@ package com.winexp.maidtavern.network.serverbound;
 
 import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.item.MaidTavernItems;
-import com.winexp.maidtavern.maid.brew.BrewingList;
+import com.winexp.maidtavern.maid.brewing.BrewingList;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;

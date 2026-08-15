@@ -1,12 +1,12 @@
-package com.winexp.maidtavern.maid.brew.bottle;
+package com.winexp.maidtavern.maid.brewing.bottle;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.brew.BrewingWork;
-import com.winexp.maidtavern.maid.brew.BrewingWorkTypes;
-import com.winexp.maidtavern.maid.brew.IBrewTask;
-import com.winexp.maidtavern.maid.brew.MaidBrewingStateManager;
+import com.winexp.maidtavern.maid.brewing.BrewingWork;
+import com.winexp.maidtavern.maid.brewing.BrewingWorkTypes;
+import com.winexp.maidtavern.maid.brewing.IBrewingTask;
+import com.winexp.maidtavern.maid.brewing.MaidBrewingStateManager;
 import com.winexp.maidtavern.maid.task.MaidSurroundingMoveTask;
 import com.winexp.maidtavern.util.MaidUtil;
 import net.minecraft.core.BlockPos;
@@ -14,17 +14,17 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
 
-public class MaidBrewMoveToBottleTask extends MaidSurroundingMoveTask {
-    private final IBrewTask task;
+public class MaidBrewingMoveToBottleTask extends MaidSurroundingMoveTask {
+    private final IBrewingTask task;
     private final float movementSpeed;
     private final double closeEnoughDist;
 
-    public MaidBrewMoveToBottleTask(IBrewTask task, float movementSpeed, int verticalSearchRange, double closeEnoughDist) {
+    public MaidBrewingMoveToBottleTask(IBrewingTask task, float movementSpeed, int verticalSearchRange, double closeEnoughDist, int minCheckTime) {
         super(movementSpeed, verticalSearchRange);
         this.task = task;
         this.movementSpeed = movementSpeed;
         this.closeEnoughDist = closeEnoughDist;
-        setMaxCheckRate(20);
+        setMaxCheckRate(minCheckTime);
     }
 
     @Override

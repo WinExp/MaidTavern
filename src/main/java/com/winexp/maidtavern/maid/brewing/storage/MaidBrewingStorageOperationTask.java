@@ -1,10 +1,10 @@
-package com.winexp.maidtavern.maid.brew.storage;
+package com.winexp.maidtavern.maid.brewing.storage;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.datafixers.util.Pair;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.brew.*;
+import com.winexp.maidtavern.maid.brewing.*;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import com.winexp.maidtavern.util.MaidUtil;
 import com.winexp.maidtavern.util.Utils;
@@ -21,10 +21,10 @@ import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
-public class MaidBrewStorageOperationTask extends Behavior<EntityMaid> {
-    private final IBrewTask task;
+public class MaidBrewingStorageOperationTask extends Behavior<EntityMaid> {
+    private final IBrewingTask task;
 
-    public MaidBrewStorageOperationTask(IBrewTask task) {
+    public MaidBrewingStorageOperationTask(IBrewingTask task) {
         super(ImmutableMap.of(
                 MaidTavernEntities.BREWING_WORK.get(), MemoryStatus.VALUE_PRESENT,
                 MaidTavernEntities.BREWING_LIST.get(), MemoryStatus.VALUE_PRESENT

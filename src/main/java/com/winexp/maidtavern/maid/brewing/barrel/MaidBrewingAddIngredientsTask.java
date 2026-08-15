@@ -1,4 +1,4 @@
-package com.winexp.maidtavern.maid.brew.barrel;
+package com.winexp.maidtavern.maid.brewing.barrel;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
@@ -6,7 +6,7 @@ import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.BarrelBlock;
 import com.github.ysbbbbbb.kaleidoscopetavern.crafting.recipe.BarrelRecipe;
 import com.google.common.collect.ImmutableMap;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.brew.*;
+import com.winexp.maidtavern.maid.brewing.*;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -21,12 +21,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MaidBrewAddIngredientsTask extends Behavior<EntityMaid> {
-    private final IBrewTask task;
+public class MaidBrewingAddIngredientsTask extends Behavior<EntityMaid> {
+    private final IBrewingTask task;
     private final int stepCooldown;
     private int cooldown;
 
-    public MaidBrewAddIngredientsTask(IBrewTask task, int stepCooldown) {
+    public MaidBrewingAddIngredientsTask(IBrewingTask task, int stepCooldown) {
         super(ImmutableMap.of(
                 MaidTavernEntities.BREWING_WORK.get(), MemoryStatus.VALUE_PRESENT,
                 MaidTavernEntities.BREWING_SESSION.get(), MemoryStatus.VALUE_PRESENT

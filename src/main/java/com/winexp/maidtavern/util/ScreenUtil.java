@@ -1,7 +1,7 @@
 package com.winexp.maidtavern.util;
 
 import com.winexp.maidtavern.client.gui.brewing_list.BrewingListScreen;
-import com.winexp.maidtavern.maid.brew.BrewingList;
+import com.winexp.maidtavern.maid.brewing.BrewingList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;

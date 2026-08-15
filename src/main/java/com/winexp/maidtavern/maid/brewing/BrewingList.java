@@ -1,4 +1,4 @@
-package com.winexp.maidtavern.maid.brew;
+package com.winexp.maidtavern.maid.brewing;
 
 import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
 import com.github.ysbbbbbb.kaleidoscopetavern.crafting.recipe.BarrelRecipe;
@@ -13,31 +13,37 @@ import net.minecraft.network.VarInt;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import org.apache.commons.lang3.IntegerRange;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-public record BrewingList(ImmutableMap<ResourceLocation, Config> entries) {
+public record BrewingList(ImmutableMap<ResourceLocation, Config> entries, OrderPolicy orderPolicy) {
     public static final Codec<BrewingList> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Entry.CODEC.listOf().fieldOf("entries").forGetter(BrewingList::getEntries)
+            Entry.CODEC.listOf().fieldOf("entries").forGetter(BrewingList::getEntries),
+            OrderPolicy.CODEC.fieldOf("order_policy").forGetter(BrewingList::orderPolicy)
     ).apply(instance, BrewingList::new));
     public static final StreamCodec<FriendlyByteBuf, BrewingList> STREAM_CODEC = StreamCodec.composite(
             Entry.STREAM_CODEC.apply(ByteBufCodecs.list()),
             BrewingList::getEntries,
+            OrderPolicy.STREAM_CODEC,
+            BrewingList::orderPolicy,
             BrewingList::new
     );
-    public static final BrewingList DEFAULT = new BrewingList(ImmutableMap.of());
+    public static final BrewingList DEFAULT = new BrewingList(ImmutableMap.of(), OrderPolicy.ROTATION);
 
-    public BrewingList(Collection<Entry> entries) {
-        this(entries.stream().collect(Collectors.toMap(Entry::recipeId, Entry::config)));
+    public BrewingList(Collection<Entry> entries, OrderPolicy orderPolicy) {
+        this(entries.stream().collect(Collectors.toMap(Entry::recipeId, Entry::config)), orderPolicy);
     }
 
-    public BrewingList(Map<ResourceLocation, Config> entries) {
-        this(ImmutableMap.copyOf(entries));
+    public BrewingList(Map<ResourceLocation, Config> entries, OrderPolicy orderPolicy) {
+        this(ImmutableMap.copyOf(entries), orderPolicy);
     }
 
     public int size() {
@@ -59,6 +65,40 @@ public record BrewingList(ImmutableMap<ResourceLocation, Config> entries) {
 
     public List<Entry> getEntries() {
         return entries.entrySet().stream().map(entry -> new Entry(entry.getKey(), entry.getValue())).toList();
+    }
+
+    public enum OrderPolicy implements StringRepresentable {
+        ROTATION((entries, count) -> {
+            List<Entry> list = new ArrayList<>(entries);
+            int size = list.size();
+            if (size <= 1) return list;
+            Collections.rotate(list, -(count % size));
+            return list;
+        }),
+        RANDOM((entries, count) -> {
+            List<Entry> list = new ArrayList<>(entries);
+            if (list.size() <= 1) return list;
+            Collections.shuffle(list);
+            return list;
+        });
+
+        public static final Codec<OrderPolicy> CODEC = StringRepresentable.fromEnum(OrderPolicy::values);
+        public static final StreamCodec<FriendlyByteBuf, OrderPolicy> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(OrderPolicy.class);
+
+        private final BiFunction<List<Entry>, Integer, List<Entry>> entryFunction;
+
+        OrderPolicy(BiFunction<List<Entry>, Integer, List<Entry>> entryFunction) {
+            this.entryFunction = entryFunction;
+        }
+
+        public List<Entry> apply(List<Entry> list, int count) {
+            return entryFunction.apply(list, count);
+        }
+
+        @Override
+        public String getSerializedName() {
+            return name().toLowerCase();
+        }
     }
 
     public record Entry(ResourceLocation recipeId, Config config) {
@@ -155,6 +195,7 @@ public record BrewingList(ImmutableMap<ResourceLocation, Config> entries) {
 
     public static class Builder {
         private final Map<ResourceLocation, Config> entries = new HashMap<>();
+        private OrderPolicy orderPolicy;
 
         public Builder() {
             this(BrewingList.DEFAULT);
@@ -162,6 +203,7 @@ public record BrewingList(ImmutableMap<ResourceLocation, Config> entries) {
 
         public Builder(BrewingList brewingList) {
             entries.putAll(brewingList.entries);
+            orderPolicy = brewingList.orderPolicy;
         }
 
         public Config get(ResourceLocation recipeId) {
@@ -178,8 +220,13 @@ public record BrewingList(ImmutableMap<ResourceLocation, Config> entries) {
             return this;
         }
 
+        public Builder orderPolicy(OrderPolicy orderPolicy) {
+            this.orderPolicy = orderPolicy;
+            return this;
+        }
+
         public BrewingList build() {
-            return new BrewingList(entries);
+            return new BrewingList(entries, orderPolicy);
         }
     }
 }

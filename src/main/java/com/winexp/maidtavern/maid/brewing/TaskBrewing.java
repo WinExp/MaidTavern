@@ -1,4 +1,4 @@
-package com.winexp.maidtavern.maid.brew;
+package com.winexp.maidtavern.maid.brewing;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
@@ -15,14 +15,14 @@ import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.brew.barrel.MaidBrewAddIngredientsTask;
-import com.winexp.maidtavern.maid.brew.barrel.MaidBrewMoveToBarrelTask;
-import com.winexp.maidtavern.maid.brew.bottle.MaidBrewMoveToBottleTask;
-import com.winexp.maidtavern.maid.brew.bottle.MaidBrewPlaceBottleTask;
-import com.winexp.maidtavern.maid.brew.bottle.MaidBrewTakeBottleTask;
-import com.winexp.maidtavern.maid.brew.common.MaidBrewPreTickTask;
-import com.winexp.maidtavern.maid.brew.storage.MaidBrewMoveToStorageTask;
-import com.winexp.maidtavern.maid.brew.storage.MaidBrewStorageOperationTask;
+import com.winexp.maidtavern.maid.brewing.barrel.MaidBrewingAddIngredientsTask;
+import com.winexp.maidtavern.maid.brewing.barrel.MaidBrewingMoveToBarrelTask;
+import com.winexp.maidtavern.maid.brewing.bottle.MaidBrewingMoveToBottleTask;
+import com.winexp.maidtavern.maid.brewing.bottle.MaidBrewingPlaceBottleTask;
+import com.winexp.maidtavern.maid.brewing.bottle.MaidBrewingTakeBottleTask;
+import com.winexp.maidtavern.maid.brewing.common.MaidBrewingPreTickTask;
+import com.winexp.maidtavern.maid.brewing.storage.MaidBrewingMoveToStorageTask;
+import com.winexp.maidtavern.maid.brewing.storage.MaidBrewingStorageOperationTask;
 import com.winexp.maidtavern.maid.task.IMaidTaskExt;
 import com.winexp.maidtavern.tag.MaidTavernItemTags;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-public class TaskBrew implements IBrewTask, IMaidTaskExt {
+public class TaskBrewing implements IBrewingTask, IMaidTaskExt {
     private static final ResourceLocation UID = MaidTavern.asResource("brewing");
     private static final ItemStack ICON = ModItems.BARREL.toStack();
 
@@ -71,14 +71,14 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
     @Override
     public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(EntityMaid maid) {
         return Lists.newArrayList(
-                Pair.of(Integer.MIN_VALUE, new MaidBrewPreTickTask()),
-                Pair.of(5, new MaidBrewMoveToStorageTask(this, 0.45f, 4, 3)),
-                Pair.of(5, new MaidBrewStorageOperationTask(this)),
-                Pair.of(5, new MaidBrewMoveToBarrelTask(this, 0.45f, 4, 2.5)),
-                Pair.of(5, new MaidBrewAddIngredientsTask(this, 20)),
-                Pair.of(5, new MaidBrewMoveToBottleTask(this, 0.45f, 4, 2)),
-                Pair.of(5, new MaidBrewPlaceBottleTask(this)),
-                Pair.of(5, new MaidBrewTakeBottleTask(this))
+                Pair.of(Integer.MIN_VALUE, new MaidBrewingPreTickTask()),
+                Pair.of(5, new MaidBrewingMoveToStorageTask(this, 0.45f, 4, 3, 20)),
+                Pair.of(5, new MaidBrewingStorageOperationTask(this)),
+                Pair.of(5, new MaidBrewingMoveToBarrelTask(this, 0.45f, 4, 2.5, 20)),
+                Pair.of(5, new MaidBrewingAddIngredientsTask(this, 20)),
+                Pair.of(5, new MaidBrewingMoveToBottleTask(this, 0.45f, 4, 2, 20)),
+                Pair.of(5, new MaidBrewingPlaceBottleTask(this)),
+                Pair.of(5, new MaidBrewingTakeBottleTask(this))
         );
     }
 
@@ -89,11 +89,6 @@ public class TaskBrew implements IBrewTask, IMaidTaskExt {
 
     @Override
     public boolean enableEating(EntityMaid maid) {
-        return !MaidBrewingStateManager.isWorking(maid);
-    }
-
-    @Override
-    public boolean enableStealEdible(EntityMaid maid) {
         return !MaidBrewingStateManager.isWorking(maid);
     }
 

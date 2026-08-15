@@ -2,64 +2,46 @@ package com.winexp.maidtavern.command;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.brew.StorageBinding;
+import com.winexp.maidtavern.maid.brewing.BrewingList;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.neoforged.neoforge.server.command.EnumArgument;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 public class MaidTavernCommand {
-    public static int bindStorage(StorageBinding.Type type, CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int orderPolicy(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
         if (!(EntityArgument.getEntity(context, "maid") instanceof EntityMaid maid)) {
             source.sendFailure(Component.literal("选择的实体不是女仆"));
             return 0;
         }
-        BlockPos pos = BlockPosArgument.getBlockPos(context, "pos");
-        StorageBinding binding = maid.getBrain().getMemory(MaidTavernEntities.STORAGE_BINDING.get()).orElse(StorageBinding.EMPTY);
-        binding = binding.add(type, pos);
-        maid.getBrain().setMemory(MaidTavernEntities.STORAGE_BINDING.get(), binding);
-        return 1;
-    }
-
-    public static int clearStorage(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        CommandSourceStack source = context.getSource();
-        if (!(EntityArgument.getEntity(context, "maid") instanceof EntityMaid maid)) {
-            source.sendFailure(Component.literal("选择的实体不是女仆"));
+        BrewingList.OrderPolicy orderPolicy = context.getArgument("order_policy", BrewingList.OrderPolicy.class);
+        BrewingList brewingList = maid.getBrain().getMemory(MaidTavernEntities.BREWING_LIST.get()).orElse(null);
+        if (brewingList == null) {
+            source.sendFailure(Component.literal("女仆没有酿造列表"));
             return 0;
         }
-        maid.getBrain().eraseMemory(MaidTavernEntities.STORAGE_BINDING.get());
-        return 1;
-    }
+        brewingList = new BrewingList.Builder(brewingList).orderPolicy(orderPolicy).build();
+        maid.getBrain().setMemory(MaidTavernEntities.BREWING_LIST.get(), brewingList);
 
-    private static LiteralArgumentBuilder<CommandSourceStack> literalBindStorage(String name, StorageBinding.Type type) {
-        return literal(name).then(
-                argument("pos", BlockPosArgument.blockPos()).executes(context ->
-                        bindStorage(type, context))
-        );
+        return 1;
     }
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(literal("maidtavern").then(
-                literal("bind_storage")
+                literal("order_policy")
                         .then(
-                                argument("maid", EntityArgument.entity()).then(
-                                        literalBindStorage("ingredients", StorageBinding.Type.INGREDIENTS)
-                                ).then(
-                                        literalBindStorage("results", StorageBinding.Type.RESULTS)
-                                ).then(
-                                        literalBindStorage("byproducts", StorageBinding.Type.BYPRODUCTS)
-                                ).then(
-                                        literal("clear").executes(MaidTavernCommand::clearStorage)
-                                )
+                                argument("maid", EntityArgument.entity())
+                                        .then(
+                                                argument("order_policy", EnumArgument.enumArgument(BrewingList.OrderPolicy.class))
+                                                        .executes(MaidTavernCommand::orderPolicy)
+                                        )
                         )
                 )
         );

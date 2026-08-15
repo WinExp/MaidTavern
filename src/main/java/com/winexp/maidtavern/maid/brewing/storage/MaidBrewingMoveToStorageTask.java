@@ -1,4 +1,4 @@
-package com.winexp.maidtavern.maid.brew.storage;
+package com.winexp.maidtavern.maid.brewing.storage;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.MaidPathFindingBFS;
@@ -6,7 +6,7 @@ import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.BarrelBlock;
 import com.mojang.datafixers.util.Pair;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.brew.*;
+import com.winexp.maidtavern.maid.brewing.*;
 import com.winexp.maidtavern.maid.task.MaidSurroundingMoveTask;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import com.winexp.maidtavern.util.MaidUtil;
@@ -15,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -25,20 +26,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class MaidBrewMoveToStorageTask extends MaidSurroundingMoveTask {
-    private final IBrewTask task;
+public class MaidBrewingMoveToStorageTask extends MaidSurroundingMoveTask {
+    private final IBrewingTask task;
     private final float movementSpeed;
     private final double closeEnoughDist;
     private @Nullable MaidPathFindingBFS pathFinding;
     private @Nullable BlockPos selectedBarrelPos;
     private @Nullable BrewingList.Entry selectedEntry;
 
-    public MaidBrewMoveToStorageTask(IBrewTask task, float movementSpeed, int verticalSearchRange, double closeEnoughDist) {
+    private List<ItemStack> resultsToInsert;
+    private List<ItemStack> byproductsToInsert;
+    private List<BrewingList.Entry> entries;
+
+    public MaidBrewingMoveToStorageTask(IBrewingTask task, float movementSpeed, int verticalSearchRange, double closeEnoughDist, int minCheckTime) {
         super(movementSpeed, verticalSearchRange);
         this.task = task;
         this.movementSpeed = movementSpeed;
         this.closeEnoughDist = closeEnoughDist;
-        setMaxCheckRate(20);
+        setMaxCheckRate(minCheckTime);
         moveRange = new BoundingBox(-1, -2, -1, 1, 1, 1);
     }
 
@@ -56,13 +61,19 @@ public class MaidBrewMoveToStorageTask extends MaidSurroundingMoveTask {
     protected void start(ServerLevel level, EntityMaid maid, long gameTimeIn) {
         selectedBarrelPos = null;
         selectedEntry = null;
+        resultsToInsert = task.getResultsToInsert(maid);
+        byproductsToInsert = task.getByproductsToInsert(maid);
         Brain<EntityMaid> brain = maid.getBrain();
+        BrewingList brewingList = brain.getMemory(MaidTavernEntities.BREWING_LIST.get()).get();
+        entries = brewingList.orderPolicy().apply(brewingList.getEntries(), MaidBrewingStateManager.getRotationCounter(maid));
+
         searchForDestination(level, maid);
         var targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).orElse(null);
         if (targetPos == null) return;
         MaidBrewingStateManager.startWork(maid, new BrewingWork(BrewingWorkTypes.STORAGE, targetPos.currentBlockPosition(), movementSpeed, closeEnoughDist));
         if (selectedEntry != null) {
             brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), BrewingSession.create(selectedEntry, selectedBarrelPos));
+            MaidBrewingStateManager.addRotationCounter(maid);
         }
     }
 
@@ -75,23 +86,20 @@ public class MaidBrewMoveToStorageTask extends MaidSurroundingMoveTask {
         Brain<EntityMaid> brain = maid.getBrain();
         IItemHandler containerInv = new InvWrapper(container);
         IItemHandler maidInv = maid.getAvailableInv(true);
-        BrewingList brewingList = brain.getMemory(MaidTavernEntities.BREWING_LIST.get()).get();
         StorageBinding binding = brain.getMemory(MaidTavernEntities.STORAGE_BINDING.get()).orElse(null);
 
         if (ItemHandlerUtil.canInsertAny(maidInv, task.getBottlesToExtract(maidInv, containerInv).stream().map(Pair::getFirst).toList())) {
             if (binding == null || binding.ingredients().contains(pos)) return true;
         }
 
-        if (ItemHandlerUtil.canInsertAny(containerInv, task.getResultsToInsert(maid))) {
+        if (ItemHandlerUtil.canInsertAny(containerInv, resultsToInsert)) {
             if (binding == null || binding.results().contains(pos)) return true;
         }
 
-        if (ItemHandlerUtil.canInsertAny(containerInv, task.getByproductsToInsert(maid))) {
+        if (ItemHandlerUtil.canInsertAny(containerInv, byproductsToInsert)) {
             if (binding == null || binding.byproducts().contains(pos)) return true;
         }
 
-        List<BrewingList.Entry> entries = new ArrayList<>(brewingList.getEntries());
-        Collections.shuffle(entries);
         for (BrewingList.Entry entry : entries) {
             BrewingList.Config config = entry.config();
             List<BlockPos> barrelPosList = new ArrayList<>(config.barrelPos());
