@@ -1,14 +1,6 @@
 {
   "parent": "minecraft:item/generated",
-  "overrides": [
-    {
-      "model": "maidtavern:item/barrel_selection_tool/closed",
-      "predicate": {
-        "minecraft:custom_model_data": 100.0
-      }
-    }
-  ],
   "textures": {
-    "layer0": "maidtavern:item/barrel_selection_tool/opened"
+    "layer0": "maidtavern:item/barrel_selection_tool"
   }
 }

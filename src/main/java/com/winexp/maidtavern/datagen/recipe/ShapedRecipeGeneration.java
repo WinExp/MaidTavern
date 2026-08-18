@@ -19,6 +19,16 @@ public class ShapedRecipeGeneration extends MaidTavernRecipeProvider {
 
     @Override
     public void buildRecipes(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, MaidTavernItems.STORAGE_BINDING_TOOL)
+                .pattern("#X#")
+                .pattern("X1X")
+                .pattern("#X#")
+                .define('#', Items.GOLD_INGOT)
+                .define('X', Items.IRON_INGOT)
+                .define('1', Items.BARREL)
+                .unlockedBy("has_barrel", inventoryTrigger(ItemPredicate.Builder.item()
+                        .of(Items.BARREL)))
+                .save(output);
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, MaidTavernItems.BARREL_SELECTION_TOOL)
                 .pattern("#X#")
                 .pattern("X1X")
