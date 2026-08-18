@@ -94,7 +94,7 @@ public class StorageBindingTargetRenderer {
         };
         for (BlockPos pos : binding.get(type)) {
             cubes.add(new CompiledCube(pos.getCenter(), 1f,
-                    FastColor.ARGB32.color(70, color), color));
+                    FastColor.ARGB32.color(60, color), color));
         }
     }
 

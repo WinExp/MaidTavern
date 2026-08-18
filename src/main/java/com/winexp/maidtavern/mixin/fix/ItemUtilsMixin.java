@@ -1,4 +1,4 @@
-package com.winexp.maidtavern.mixin;
+package com.winexp.maidtavern.mixin.fix;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.ysbbbbbb.kaleidoscopetavern.util.ItemUtils;

@@ -220,6 +220,10 @@ public record BrewingList(ImmutableMap<ResourceLocation, Config> entries, OrderP
             return this;
         }
 
+        public OrderPolicy getOrderPolicy() {
+            return orderPolicy;
+        }
+
         public Builder orderPolicy(OrderPolicy orderPolicy) {
             this.orderPolicy = orderPolicy;
             return this;

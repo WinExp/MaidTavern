@@ -1,4 +1,4 @@
-package com.winexp.maidtavern.mixin;
+package com.winexp.maidtavern.mixin.fix;
 
 import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.BarrelBlock;
 import net.minecraft.world.level.block.Block;

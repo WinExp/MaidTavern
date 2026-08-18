@@ -4,6 +4,8 @@ import com.github.ysbbbbbb.kaleidoscopetavern.crafting.recipe.BarrelRecipe;
 import com.github.ysbbbbbb.kaleidoscopetavern.init.ModRecipes;
 import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.client.gui.brewing_list.widget.BrewingListEntry;
+import com.winexp.maidtavern.client.gui.brewing_list.widget.OrderPolicyButton;
+import com.winexp.maidtavern.client.renderer.BarrelBindingTargetRenderer;
 import com.winexp.maidtavern.item.MaidTavernItems;
 import com.winexp.maidtavern.maid.brewing.BrewingList;
 import com.winexp.maidtavern.menu.GhostSlot;
@@ -47,6 +49,8 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
     public static final int RIGHT_PICKER_X = 161;
     public static final int RIGHT_PICKER_Y = 16;
 
+    private final List<OrderPolicyButton> orderPolicyButtons = new ArrayList<>();
+
     public BrewingListScreen(LocalPlayer player, InteractionHand hand, BrewingList brewingList) {
         super(new BrewingListMenu(hand, player.registryAccess(), brewingList, player.level().getRecipeManager().getAllRecipesFor(ModRecipes.BARREL_RECIPE)),
                 player.getInventory(), Component.empty());
@@ -63,6 +67,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
     protected void init() {
         super.init();
         menu.entries.clear();
+        orderPolicyButtons.clear();
         for (int i = 0; i < PICKER_ROWS; i++) {
             BrewingListEntry entry = new BrewingListEntry(i, leftPos + LEFT_PICKER_X, topPos + LEFT_PICKER_Y + i * 18,
                     18 * PICKER_COLUMNS, 16, this::onEntryButtonClicked, this::applySliderValue, Component.empty());
@@ -70,19 +75,43 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
             addRenderableWidget(entry);
             menu.entries.add(entry);
         }
+        for (int i = 0; i < BrewingList.OrderPolicy.values().length; i++) {
+            BrewingList.OrderPolicy orderPolicy = BrewingList.OrderPolicy.values()[i];
+            OrderPolicyButton button = new OrderPolicyButton(leftPos - 26, topPos + LEFT_PICKER_Y - 3 + i * 26, 22, 22, Component.empty(), button1 ->
+                    onOrderPolicyButtonClicked((OrderPolicyButton) button1), orderPolicy);
+            if (menu.builder.getOrderPolicy() == orderPolicy) {
+                button.selected = true;
+            }
+            addRenderableWidget(button);
+            orderPolicyButtons.add(button);
+        }
         menu.update();
+    }
+
+    private void onOrderPolicyButtonClicked(OrderPolicyButton button) {
+        for (OrderPolicyButton orderPolicyButton : orderPolicyButtons) {
+            orderPolicyButton.selected = false;
+        }
+        menu.builder.orderPolicy(button.getOrderPolicy());
+        button.selected = true;
     }
 
     private void onEntryButtonClicked(BrewingListEntry entry) {
         ResourceLocation recipeId = menu.selectedRecipes.get(menu.getScrolledSelectedIdx(entry.index));
         BrewingList.Config config = menu.builder.get(recipeId);
-        if (config.barrelPos().isEmpty()) {
-            minecraft.pushGuiLayer(new InventorySelectionScreen(minecraft.player, stack -> stack.is(MaidTavernItems.BARREL_SELECTION_TOOL), stack -> {
-                Set<BlockPos> targetPositions = stack.get(MaidTavernItems.BARREL_POSITIONS_DATA);
-                applyNewBarrelPositions(entry, recipeId, targetPositions);
-            }));
+        if (hasShiftDown()) {
+            if (config.barrelPos().isEmpty()) return;
+            BarrelBindingTargetRenderer.overridePositions(config.barrelPos(), 80);
+            onClose();
         } else {
-            applyNewBarrelPositions(entry, recipeId, List.of());
+            if (config.barrelPos().isEmpty()) {
+                minecraft.pushGuiLayer(new InventorySelectionScreen(minecraft.player, stack -> stack.is(MaidTavernItems.BARREL_SELECTION_TOOL), stack -> {
+                    Set<BlockPos> targetPositions = stack.get(MaidTavernItems.BARREL_POSITIONS_DATA);
+                    applyNewBarrelPositions(entry, recipeId, targetPositions);
+                }));
+            } else {
+                applyNewBarrelPositions(entry, recipeId, List.of());
+            }
         }
     }
 
@@ -170,6 +199,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
     public static class BrewingListMenu extends AbstractContainerMenu {
         private final InteractionHand hand;
         private final HolderLookup.Provider registries;
+        private final BrewingList oldList;
         private final BrewingList.Builder builder;
         private final List<ResourceLocation> selectedRecipes;
         private final List<RecipeHolder<BarrelRecipe>> allRecipes;
@@ -196,6 +226,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
             super(null, 0);
             this.hand = hand;
             this.registries = registries;
+            oldList = brewingList;
             builder = new BrewingList.Builder(brewingList);
             selectedRecipes = new LinkedList<>(brewingList.entries().keySet());
             this.allRecipes = allRecipes;
@@ -255,14 +286,12 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
         }
 
         private void onSelectedSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess) {
-            if (action == ClickAction.PRIMARY) {
-                int idx = getScrolledSelectedIdx(slot.getContainerSlot());
-                if (idx >= selectedRecipes.size()) return;
-                ResourceLocation recipeId = selectedRecipes.get(idx);
-                builder.remove(recipeId);
-                selectedRecipes.remove(idx);
-                update();
-            }
+            int idx = getScrolledSelectedIdx(slot.getContainerSlot());
+            if (idx >= selectedRecipes.size()) return;
+            ResourceLocation recipeId = selectedRecipes.get(idx);
+            builder.remove(recipeId);
+            selectedRecipes.remove(idx);
+            update();
         }
 
         private void onRecipeSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess) {
@@ -338,7 +367,9 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
         @Override
         public void removed(Player player) {
             super.removed(player);
-            ServerboundSetBrewingListPayload payload = new ServerboundSetBrewingListPayload(hand, builder.build());
+            BrewingList newList = builder.build();
+            if (oldList.equals(newList)) return;
+            ServerboundSetBrewingListPayload payload = new ServerboundSetBrewingListPayload(hand, newList);
             Minecraft.getInstance().getConnection().send(payload);
         }
 

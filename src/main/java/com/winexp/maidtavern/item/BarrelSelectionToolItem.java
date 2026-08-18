@@ -34,20 +34,22 @@ public class BarrelSelectionToolItem extends Item {
         ItemStack stack = context.getItemInHand();
         BlockPos pos = context.getClickedPos();
         BlockState state = level.getBlockState(pos);
-        boolean isBarrel = BarrelBlock.getBarrelEntity(level, pos, state) != null;
-        if (isBarrel) {
-            pos = BarrelBlock.getOriginPos(pos, state);
-        }
         List<BlockPos> positions = new LinkedList<>(stack.get(MaidTavernItems.BARREL_POSITIONS_DATA));
+        boolean isBarrel = BarrelBlock.getBarrelEntity(level, pos, state) != null;
         float soundPitch;
         if (positions.contains(pos)) {
             positions.remove(pos);
             soundPitch = 0.8f;
-        } else {
-            if (!isBarrel) return InteractionResult.PASS;
-            positions.add(pos);
-            soundPitch = 0.9f;
-        }
+        } else if (isBarrel) {
+            pos = BarrelBlock.getOriginPos(pos, state);
+            if (positions.contains(pos)) {
+                positions.remove(pos);
+                soundPitch = 0.8f;
+            } else {
+                positions.add(pos);
+                soundPitch = 0.9f;
+            }
+        } else return InteractionResult.FAIL;
         stack.set(MaidTavernItems.BARREL_POSITIONS_DATA, ImmutableSet.copyOf(positions));
         if (positions.isEmpty()) {
             stack.remove(DataComponents.CUSTOM_MODEL_DATA);

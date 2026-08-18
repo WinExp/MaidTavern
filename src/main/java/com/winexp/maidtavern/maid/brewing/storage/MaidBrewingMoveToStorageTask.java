@@ -7,6 +7,7 @@ import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.BarrelBlock;
 import com.mojang.datafixers.util.Pair;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.brewing.*;
+import com.winexp.maidtavern.maid.brewing.barrel.MaidBrewingMoveToBarrelTask;
 import com.winexp.maidtavern.maid.task.MaidSurroundingMoveTask;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import com.winexp.maidtavern.util.MaidUtil;
@@ -111,7 +112,8 @@ public class MaidBrewingMoveToStorageTask extends MaidSurroundingMoveTask {
                     BrewingSession session = maid1.getBrain().getMemory(MaidTavernEntities.BREWING_SESSION.get()).orElse(null);
                     return session == null ? null : session.barrelPos().orElse(null);
                 })) continue;
-                if (!task.isBarrelValid(maid, BarrelBlock.getBarrelEntity(level, barrelPos, barrelState)) || !checkPathReach(maid, pathFinding, barrelPos.above(2))) continue;
+                if (!task.isBarrelValid(maid, BarrelBlock.getBarrelEntity(level, barrelPos, barrelState))
+                        || !MaidUtil.checkSurroundingPathReach(pathFinding, barrelPos.above(2), MaidBrewingMoveToBarrelTask.MOVE_RANGE)) continue;
                 selectedBarrelPos = barrelPos;
                 valid = true;
                 break;

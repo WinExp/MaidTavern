@@ -36,7 +36,7 @@ public class BrewingListEntry extends ExtendedAbstractContainerWidget {
                 onSliderApply.accept(BrewingListEntry.this);
             }
         };
-        button = new ExtendedButton(x + width - 16, y, 16, 16, Component.literal("+"), button1 -> onButtonPress.accept(this));
+        button = new ExtendedButton(x + width - 16, y, 16, 16, Component.literal("+"), button1 -> onButtonPress.accept(BrewingListEntry.this));
         addWidget(slider);
         addWidget(button);
     }

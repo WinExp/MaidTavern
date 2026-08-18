@@ -117,7 +117,7 @@ public class MaidBrewingPreTickTask extends Behavior<EntityMaid> {
             Optional<WalkTarget> walkTarget = brain.getMemory(MemoryModuleType.WALK_TARGET);
             if (walkTarget.isEmpty() || !walkTarget.get().getTarget().currentPosition().equals(pos.getCenter())) {
                 int attempt = brain.getMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get()).get() + 1;
-                if (attempt <= 2 && getOrCreateArrivalMap(maid).canPathReach(pos)) {
+                if (attempt <= 2) {
                     BehaviorUtils.setWalkAndLookTargetMemories(maid, pos, work.movementSpeed(), 0);
                     brain.setMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get(), attempt);
                 } else {

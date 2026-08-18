@@ -39,7 +39,8 @@ public class MaidBrewingMoveToBottleTask extends MaidSurroundingMoveTask {
     @Override
     protected void start(ServerLevel level, EntityMaid maid, long gameTime) {
         searchForDestination(level, maid);
-        maid.getBrain().getMemory(InitEntities.TARGET_POS.get()).map(PositionTracker::currentBlockPosition).ifPresent(targetPos ->
+        Brain<EntityMaid> brain = maid.getBrain();
+        brain.getMemory(InitEntities.TARGET_POS.get()).map(PositionTracker::currentBlockPosition).ifPresent(targetPos ->
                 MaidBrewingStateManager.startWork(maid, new BrewingWork(BrewingWorkTypes.BOTTLE, targetPos, movementSpeed, closeEnoughDist)));
     }
 

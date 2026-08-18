@@ -21,14 +21,14 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @EventBusSubscriber(value = Dist.CLIENT)
 public class BarrelBindingTargetRenderer {
     private static final List<CompiledCube> cubes = new ArrayList<>();
     private static ImmutableSet<BlockPos> prevPositions;
+    private static final Set<BlockPos> positionsOverride = new HashSet<>();
+    private static int overrideExpirationTime;
 
     @SubscribeEvent
     public static void onRender(RenderLevelStageEvent event) {
@@ -79,17 +79,29 @@ public class BarrelBindingTargetRenderer {
         Level level = mc.level;
         if (player == null || level == null) return;
         ItemStack stack = player.getMainHandItem();
-        ImmutableSet<BlockPos> positions = stack.get(MaidTavernItems.BARREL_POSITIONS_DATA);
+        ImmutableSet<BlockPos> positions;
+        if (overrideExpirationTime > 0) {
+            positions = ImmutableSet.copyOf(positionsOverride);
+            overrideExpirationTime--;
+        } else {
+            positions = stack.get(MaidTavernItems.BARREL_POSITIONS_DATA);
+        }
         if (Objects.equals(prevPositions, positions)) return;
         cubes.clear();
         prevPositions = positions;
         if (positions == null) return;
         for (BlockPos pos : positions) {
             cubes.add(new CompiledCube(pos.getCenter(), 1f,
-                    FastColor.ARGB32.color(70, 210, 210, 210), FastColor.ARGB32.color(210, 210, 210)));
+                    FastColor.ARGB32.color(60, 210, 210, 210), FastColor.ARGB32.color(210, 210, 210)));
             cubes.add(new CompiledCube(pos.above().getCenter(), 3f,
-                    FastColor.ARGB32.color(70, 210, 210, 210), FastColor.ARGB32.color(210, 210, 210)));
+                    FastColor.ARGB32.color(60, 210, 210, 210), FastColor.ARGB32.color(210, 210, 210)));
         }
+    }
+
+    public static void overridePositions(Collection<BlockPos> positions, int expirationTime) {
+        positionsOverride.clear();
+        positionsOverride.addAll(positions);
+        overrideExpirationTime = expirationTime;
     }
 
     public record CompiledCube(Vec3 pos, float size, int color, int outlineColor) {

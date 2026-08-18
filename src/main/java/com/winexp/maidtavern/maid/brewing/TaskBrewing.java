@@ -99,7 +99,7 @@ public class TaskBrewing implements IBrewingTask, IMaidTaskExt {
 
     @Override
     public boolean enableDrinking(EntityMaid maid) {
-        return !MaidBrewingStateManager.isWorking(maid);
+        return true;
     }
 
     @Override
