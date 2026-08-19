@@ -1,6 +1,7 @@
 package com.winexp.maidtavern.client.gui.brewing_list.widget;
 
 import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
+import com.winexp.maidtavern.client.gui.widget.ExtendedAbstractContainerWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;

@@ -1,4 +1,4 @@
-package com.winexp.maidtavern.client.gui.brewing_list.widget;
+package com.winexp.maidtavern.client.gui.widget;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractContainerWidget;
