@@ -7,10 +7,13 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@OnlyIn(Dist.CLIENT)
 public class ExtendedAbstractContainerWidget extends AbstractContainerWidget {
     private final List<Renderable> renderables = new ArrayList<>();
     private final List<GuiEventListener> listeners = new ArrayList<>();

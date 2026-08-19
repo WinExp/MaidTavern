@@ -9,11 +9,14 @@ import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import java.util.List;
 import java.util.Map;
 
+@OnlyIn(Dist.CLIENT)
 public class OrderPolicyButton extends ExtendedButton {
     public static final ResourceLocation DEFAULT = MaidTavern.asResource("textures/gui/brewing_list/order_policy/button.png");
     public static final ResourceLocation HOVERED = MaidTavern.asResource("textures/gui/brewing_list/order_policy/button_highlighted.png");
