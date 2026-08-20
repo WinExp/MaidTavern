@@ -15,8 +15,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
-import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
-import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ToolActions;
@@ -91,7 +89,7 @@ public class TaskGrape implements IGrapeTask {
     @Override
     public List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
         return Lists.newArrayList(
-                Pair.of("has_shears", maid1 -> maid1.getMainHandItem().canPerformAction(ToolActions.SHEARS_HARVEST))
+                Pair.of("has_shears", maid1 -> true)
         );
     }
 }

@@ -2,30 +2,45 @@ package com.winexp.maidtavern.entity;
 
 import com.mojang.serialization.Codec;
 import com.winexp.maidtavern.MaidTavern;
-import com.winexp.maidtavern.maid.brew.BrewingList;
-import com.winexp.maidtavern.maid.brew.BrewingSession;
-import com.winexp.maidtavern.maid.brew.StorageBinding;
+import com.winexp.maidtavern.maid.brewing.BrewingList;
+import com.winexp.maidtavern.maid.brewing.BrewingSession;
+import com.winexp.maidtavern.maid.brewing.BrewingWork;
+import com.winexp.maidtavern.maid.brewing.StorageBinding;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
 public class MaidTavernEntities {
     private static final DeferredRegister<MemoryModuleType<?>> MEMORY_MODULE_TYPES = DeferredRegister.create(ForgeRegistries.MEMORY_MODULE_TYPES, MaidTavern.MOD_ID);
 
-    public static final RegistryObject<MemoryModuleType<Integer>> MOLOTOV_DRUNK = MEMORY_MODULE_TYPES
-            .register("molotov_drunk", () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
+    public static final RegistryObject<MemoryModuleType<Integer>> MOLOTOV_DRUNK =
+            register("molotov_drunk", Codec.INT);
 
-    public static final RegistryObject<MemoryModuleType<BrewingList>> BREWING_LIST = MEMORY_MODULE_TYPES
-            .register("brewing_list", () -> new MemoryModuleType<>(Optional.of(BrewingList.CODEC)));
-    public static final RegistryObject<MemoryModuleType<BrewingSession>> BREWING_SESSION = MEMORY_MODULE_TYPES
-            .register("brewing_session", () -> new MemoryModuleType<>(Optional.of(BrewingSession.CODEC)));
+    public static final RegistryObject<MemoryModuleType<BrewingList>> BREWING_LIST =
+            register("brewing_list", BrewingList.CODEC);
+    public static final RegistryObject<MemoryModuleType<BrewingSession>> BREWING_SESSION =
+            register("brewing_session", BrewingSession.CODEC);
+    public static final RegistryObject<MemoryModuleType<Integer>> BREWING_LIST_ROTATION_COUNTER =
+            register("brewing_list_rotation_counter", Codec.INT);
 
-    public static final RegistryObject<MemoryModuleType<StorageBinding>> STORAGE_BINDING = MEMORY_MODULE_TYPES
-            .register("storage_binding", () -> new MemoryModuleType<>(Optional.of(StorageBinding.CODEC)));
+    public static final RegistryObject<MemoryModuleType<StorageBinding>> STORAGE_BINDING =
+            register("storage_binding", StorageBinding.CODEC);
+
+    public static final RegistryObject<MemoryModuleType<BrewingWork>> BREWING_WORK =
+            register("brewing_work", BrewingWork.CODEC);
+    public static final RegistryObject<MemoryModuleType<Integer>> PATH_FINDING_ATTEMPT =
+            register("path_finding_attempt", Codec.INT);
+    public static final RegistryObject<MemoryModuleType<Integer>> PATH_FINDING_TIME =
+            register("path_finding_time", Codec.INT);
+
+    private static <T> RegistryObject<MemoryModuleType<T>> register(String name, @Nullable Codec<T> codec) {
+        return MEMORY_MODULE_TYPES.register(name, () -> new MemoryModuleType<>(Optional.ofNullable(codec)));
+    }
 
     public static void register(IEventBus modEventBus) {
         MEMORY_MODULE_TYPES.register(modEventBus);

@@ -1,5 +1,6 @@
 package com.winexp.maidtavern.datagen;
 
+import com.winexp.maidtavern.datagen.recipe.MaidTavernRecipeGeneration;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -10,9 +11,7 @@ import net.minecraftforge.fml.common.Mod;
 
 import java.util.concurrent.CompletableFuture;
 
-@Mod.EventBusSubscriber(
-        bus = Mod.EventBusSubscriber.Bus.MOD
-)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 public class MaidTavernDataGeneration {
     @SubscribeEvent
     public static void gatherData(GatherDataEvent event) {
@@ -35,7 +34,7 @@ public class MaidTavernDataGeneration {
         );
         generator.addProvider(
                 event.includeServer(),
-                new ShapelessRecipeGeneration(output)
+                new MaidTavernRecipeGeneration(output)
         );
     }
 }

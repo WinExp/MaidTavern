@@ -1,0 +1,217 @@
+package com.winexp.maidtavern.maid.brewing;
+
+import com.github.ysbbbbbb.kaleidoscopetavern.api.blockentity.IBarrel;
+import com.github.ysbbbbbb.kaleidoscopetavern.crafting.recipe.BarrelRecipe;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.winexp.maidtavern.util.RecipeHolder;
+import com.winexp.maidtavern.util.Utils;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.item.crafting.RecipeManager;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+
+public record BrewingList(ImmutableMap<ResourceLocation, Config> entries, OrderPolicy orderPolicy) {
+    public static final Codec<BrewingList> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Entry.CODEC.listOf().fieldOf("entries").forGetter(BrewingList::getEntries),
+            OrderPolicy.CODEC.fieldOf("order_policy").forGetter(BrewingList::orderPolicy)
+    ).apply(instance, BrewingList::new));
+    public static final BrewingList DEFAULT = new BrewingList(ImmutableMap.of(), OrderPolicy.ROTATION);
+
+    public BrewingList(Collection<Entry> entries, OrderPolicy orderPolicy) {
+        this(entries.stream().collect(Collectors.toMap(Entry::recipeId, Entry::config)), orderPolicy);
+    }
+
+    public BrewingList(Map<ResourceLocation, Config> entries, OrderPolicy orderPolicy) {
+        this(ImmutableMap.copyOf(entries), orderPolicy);
+    }
+
+    public static void encode(BrewingList list, FriendlyByteBuf buf) {
+        buf.writeMap(list.entries, FriendlyByteBuf::writeResourceLocation, (buf1, config) -> Config.encode(config, buf1));
+        buf.writeEnum(list.orderPolicy);
+    }
+
+    public static BrewingList decode(FriendlyByteBuf buf) {
+        return new BrewingList(buf.readMap(FriendlyByteBuf::readResourceLocation, Config::decode), buf.readEnum(OrderPolicy.class));
+    }
+
+    public int size() {
+        return entries.size();
+    }
+
+    public boolean isEmpty() {
+        return entries.isEmpty();
+    }
+
+    public boolean contains(ResourceLocation recipeId) {
+        return entries.containsKey(recipeId);
+    }
+
+    public @Nullable Entry get(ResourceLocation recipeId) {
+        if (isEmpty()) return null;
+        return new Entry(recipeId, entries.get(recipeId));
+    }
+
+    public List<Entry> getEntries() {
+        return entries.entrySet().stream().map(entry -> new Entry(entry.getKey(), entry.getValue())).toList();
+    }
+
+    public enum OrderPolicy implements StringRepresentable {
+        ROTATION((entries, count) -> {
+            List<Entry> list = new ArrayList<>(entries);
+            int size = list.size();
+            if (size <= 1) return list;
+            Collections.rotate(list, -(count % size));
+            return list;
+        }),
+        RANDOM((entries, count) -> {
+            List<Entry> list = new ArrayList<>(entries);
+            if (list.size() <= 1) return list;
+            Collections.shuffle(list);
+            return list;
+        });
+
+        public static final Codec<OrderPolicy> CODEC = StringRepresentable.fromEnum(OrderPolicy::values);
+
+        private final BiFunction<List<Entry>, Integer, List<Entry>> entryFunction;
+
+        OrderPolicy(BiFunction<List<Entry>, Integer, List<Entry>> entryFunction) {
+            this.entryFunction = entryFunction;
+        }
+
+        public List<Entry> apply(List<Entry> list, int count) {
+            return entryFunction.apply(list, count);
+        }
+
+        @Override
+        public String getSerializedName() {
+            return name().toLowerCase();
+        }
+    }
+
+    public record Entry(ResourceLocation recipeId, Config config) {
+        public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                ResourceLocation.CODEC.fieldOf("recipe_id").forGetter(Entry::recipeId),
+                Config.CODEC.fieldOf("config").forGetter(Entry::config)
+        ).apply(instance, Entry::new));
+
+        public @Nullable BarrelRecipe getRecipe(RecipeManager recipeManager) {
+            return (BarrelRecipe) Utils.byKey(recipeManager, recipeId).map(RecipeHolder::value).orElse(null);
+        }
+    }
+
+    public record Config(int brewLevel, ImmutableSet<BlockPos> barrelPos) {
+        public static final Codec<Config> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.intRange(IBarrel.BREWING_STARTED, IBarrel.BREWING_FINISHED).fieldOf("brew_level").forGetter(Config::brewLevel),
+                BlockPos.CODEC.listOf().xmap(ImmutableSet::copyOf, List::copyOf).fieldOf("barrel_pos").forGetter(Config::barrelPos)
+        ).apply(instance, Config::new));
+        public static final Config DEFAULT = new Config(IBarrel.BREWING_FINISHED, ImmutableSet.of());
+
+        public Config(int brewLevel, Collection<BlockPos> barrelPos) {
+            this(brewLevel, ImmutableSet.copyOf(barrelPos));
+        }
+
+        public static void encode(Config config, FriendlyByteBuf buf) {
+            buf.writeVarInt(config.brewLevel);
+            buf.writeCollection(config.barrelPos, FriendlyByteBuf::writeBlockPos);
+        }
+
+        public static Config decode(FriendlyByteBuf buf) {
+            int brewLevel = buf.readVarInt();
+            List<BlockPos> barrelPos = buf.readCollection(ArrayList::new, FriendlyByteBuf::readBlockPos);
+            return new Config(brewLevel, barrelPos);
+        }
+
+        public static class Builder {
+            private int brewLevel;
+            private final Set<BlockPos> barrelPos = new HashSet<>();
+
+            public Builder() {
+                this(Config.DEFAULT);
+            }
+
+            public Builder(Config config) {
+                brewLevel = config.brewLevel;
+                barrelPos.addAll(config.barrelPos);
+            }
+
+            public Builder brewLevel(int brewLevel) {
+                this.brewLevel = brewLevel;
+                return this;
+            }
+
+            public Builder addBarrelPos(BlockPos pos) {
+                barrelPos.add(pos);
+                return this;
+            }
+
+            public Builder addAllBarrelPos(Collection<BlockPos> pos) {
+                barrelPos.addAll(pos);
+                return this;
+            }
+
+            public Builder removeBarrelPos(BlockPos pos) {
+                barrelPos.remove(pos);
+                return this;
+            }
+
+            public Builder removeAllBarrelPos() {
+                barrelPos.clear();
+                return this;
+            }
+
+            public Config build() {
+                return new Config(brewLevel, barrelPos);
+            }
+        }
+    }
+
+    public static class Builder {
+        private final Map<ResourceLocation, Config> entries = new HashMap<>();
+        private OrderPolicy orderPolicy;
+
+        public Builder() {
+            this(BrewingList.DEFAULT);
+        }
+
+        public Builder(BrewingList brewingList) {
+            entries.putAll(brewingList.entries);
+            orderPolicy = brewingList.orderPolicy;
+        }
+
+        public Config get(ResourceLocation recipeId) {
+            return entries.get(recipeId);
+        }
+
+        public Builder put(ResourceLocation recipeId, Config config) {
+            entries.put(recipeId, config);
+            return this;
+        }
+
+        public Builder remove(ResourceLocation recipeId) {
+            entries.remove(recipeId);
+            return this;
+        }
+
+        public OrderPolicy getOrderPolicy() {
+            return orderPolicy;
+        }
+
+        public Builder orderPolicy(OrderPolicy orderPolicy) {
+            this.orderPolicy = orderPolicy;
+            return this;
+        }
+
+        public BrewingList build() {
+            return new BrewingList(entries, orderPolicy);
+        }
+    }
+}

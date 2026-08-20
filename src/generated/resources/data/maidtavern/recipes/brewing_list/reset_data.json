@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "maidtavern:brewing_list"
+    }
+  ],
+  "result": {
+    "item": "maidtavern:brewing_list"
+  }
+}

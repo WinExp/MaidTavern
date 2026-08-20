@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_brewing_list": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "maidtavern:brewing_list"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "maidtavern:brewing_list/reset_data"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_brewing_list",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "maidtavern:brewing_list/reset_data"
+    ]
+  },
+  "sends_telemetry_event": false
+}

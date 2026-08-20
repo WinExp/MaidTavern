@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "maidtavern:barrel_selection_tool"
+    }
+  ],
+  "result": {
+    "item": "maidtavern:barrel_selection_tool"
+  }
+}
