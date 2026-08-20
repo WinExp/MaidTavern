@@ -285,7 +285,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
             update();
         }
 
-        private void onSelectedSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess) {
+        private void onSelectedSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ClickAction action, SlotAccess carriedSlotAccess) {
             int idx = getScrolledSelectedIdx(slot.getContainerSlot());
             if (idx >= selectedRecipes.size()) return;
             ResourceLocation recipeId = selectedRecipes.get(idx);
@@ -294,7 +294,7 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
             update();
         }
 
-        private void onRecipeSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess) {
+        private void onRecipeSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ClickAction action, SlotAccess carriedSlotAccess) {
             int idx = getScrolledRecipeIdx(slot.getContainerSlot());
             ResourceLocation recipeId = allRecipes.get(idx).id();
             if (selectedRecipes.contains(recipeId)) return;

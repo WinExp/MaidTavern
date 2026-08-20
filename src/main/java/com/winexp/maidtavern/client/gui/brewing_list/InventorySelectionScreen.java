@@ -106,10 +106,11 @@ public class InventorySelectionScreen extends AbstractContainerScreen<InventoryS
             rebuildAvailableMap();
         }
 
-        private void onSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess) {
-            if (!filter.test(slotStack)) return;
+        private void onSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ClickAction action, SlotAccess carriedSlotAccess) {
+            ItemStack stack = slot.getItem();
+            if (!filter.test(stack)) return;
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1));
-            callback.accept(slotStack);
+            callback.accept(stack);
             closeScreenRunnable.run();
         }
 

@@ -10,7 +10,7 @@ public class OnGhostSlotClicked {
     @SubscribeEvent
     public static void onGhostSlotClicked(ItemStackedOnOtherEvent event) {
         if (event.getSlot() instanceof GhostSlot slot) {
-            slot.onClicked(event.getPlayer(), event.getCarriedItem(), event.getStackedOnItem(), event.getClickAction(), event.getCarriedSlotAccess());
+            slot.onClicked(event.getPlayer(), event.getCarriedItem(), event.getClickAction(), event.getCarriedSlotAccess());
             event.setCanceled(true);
         }
     }

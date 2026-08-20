@@ -35,23 +35,17 @@ public class BrewingListItem extends Item implements MaidInteractionItem {
     @Override
     public boolean useOnMaid(Level level, Player player, EntityMaid maid, ItemStack stack) {
         if (!(maid.getTask() instanceof IBrewingTask)) return false;
-        if (player.isShiftKeyDown()) {
-            if (!level.isClientSide) {
+        if (!level.isClientSide) {
+            if (player.isShiftKeyDown()) {
                 BrewingList brewingList = maid.getBrain().getMemory(MaidTavernEntities.BREWING_LIST.get()).orElse(BrewingList.DEFAULT);
                 stack.set(MaidTavernItems.BREWING_LIST_DATA, brewingList);
                 player.displayClientMessage(Component.translatable("item.maidtavern.brewing_list.load"), true);
-            }
-            return true;
-        } else {
-            if (stack.has(MaidTavernItems.BREWING_LIST_DATA)) {
-                if (!level.isClientSide) {
-                    BrewingList brewingList = stack.get(MaidTavernItems.BREWING_LIST_DATA);
-                    maid.getBrain().setMemory(MaidTavernEntities.BREWING_LIST.get(), brewingList);
-                    player.displayClientMessage(Component.translatable("item.maidtavern.brewing_list.save"), true);
-                }
-                return true;
+            } else {
+                BrewingList brewingList = stack.get(MaidTavernItems.BREWING_LIST_DATA);
+                maid.getBrain().setMemory(MaidTavernEntities.BREWING_LIST.get(), brewingList);
+                player.displayClientMessage(Component.translatable("item.maidtavern.brewing_list.save"), true);
             }
         }
-        return false;
+        return true;
     }
 }

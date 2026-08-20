@@ -38,9 +38,9 @@ public class GhostSlot extends Slot {
         listeners.remove(listener);
     }
 
-    public void onClicked(Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess) {
+    public void onClicked(Player player, ItemStack carriedStack, ClickAction action, SlotAccess carriedSlotAccess) {
         for (SlotClickedListener listener : listeners) {
-            listener.onSlotClicked(this, player, carriedStack, slotStack, action, carriedSlotAccess);
+            listener.onSlotClicked(this, player, carriedStack, action, carriedSlotAccess);
         }
     }
 
@@ -65,7 +65,7 @@ public class GhostSlot extends Slot {
     }
 
     public interface SlotClickedListener {
-        void onSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ItemStack slotStack, ClickAction action, SlotAccess carriedSlotAccess);
+        void onSlotClicked(GhostSlot slot, Player player, ItemStack carriedStack, ClickAction action, SlotAccess carriedSlotAccess);
     }
 
     public interface HighlightPredicate {

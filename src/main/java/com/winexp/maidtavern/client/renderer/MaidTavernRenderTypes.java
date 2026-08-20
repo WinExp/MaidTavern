@@ -12,7 +12,7 @@ public class MaidTavernRenderTypes {
             "hilight_cube",
             DefaultVertexFormat.POSITION_COLOR_NORMAL,
             VertexFormat.Mode.QUADS,
-            1536,
+            256,
             RenderType.CompositeState.builder()
                     .setShaderState(RenderType.POSITION_COLOR_SHADER)
                     .setLayeringState(RenderType.VIEW_OFFSET_Z_LAYERING)
@@ -25,12 +25,12 @@ public class MaidTavernRenderTypes {
                     .createCompositeState(false)
     );
 
-    public static final RenderStateShard.LineStateShard THIN_LINE = new RenderStateShard.LineStateShard(OptionalDouble.of(3.0));
+    protected static final RenderStateShard.LineStateShard THIN_LINE = new RenderStateShard.LineStateShard(OptionalDouble.of(3.0));
     public static final RenderType HILIGHT_CUBE_OUTLINE = RenderType.create(
             "hilight_cube_outline",
             DefaultVertexFormat.POSITION_COLOR_NORMAL,
             VertexFormat.Mode.LINES,
-            1536,
+            256,
             RenderType.CompositeState.builder()
                     .setLineState(THIN_LINE)
                     .setShaderState(RenderType.RENDERTYPE_LINES_SHADER)

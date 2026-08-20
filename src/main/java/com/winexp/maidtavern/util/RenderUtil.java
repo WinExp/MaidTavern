@@ -4,8 +4,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix4f;
 
+@OnlyIn(Dist.CLIENT)
 public class RenderUtil {
     public static void renderCube(PoseStack poseStack, VertexConsumer consumer, Vec3 center, float size, float red, float green, float blue, float alpha) {
         float half = size * 0.5f;
