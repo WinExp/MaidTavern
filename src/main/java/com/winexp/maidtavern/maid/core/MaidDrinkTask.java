@@ -7,6 +7,7 @@ import com.github.ysbbbbbb.kaleidoscopetavern.item.DrinkBlockItem;
 import com.github.ysbbbbbb.kaleidoscopetavern.item.MolotovBlockItem;
 import com.github.ysbbbbbb.kaleidoscopetavern.util.ItemUtils;
 import com.google.common.collect.ImmutableMap;
+import com.winexp.maidtavern.config.MaidTavernConfig;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.task.IMaidTaskExt;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
@@ -33,6 +34,7 @@ public class MaidDrinkTask extends MaidCheckRateTask {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
+        if (!MaidTavernConfig.CONFIG.enableDrinking.get()) return false;
         if (!super.checkExtraStartConditions(level, maid)) return false;
         if (maid.getTask() instanceof IMaidTaskExt ext && !ext.enableDrinking(maid)) return false;
         return ItemHandlerUtil.contains(maid.getAvailableInv(true), DRINK_PREDICATE);

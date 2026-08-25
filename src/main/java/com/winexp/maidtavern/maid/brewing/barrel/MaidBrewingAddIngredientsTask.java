@@ -123,6 +123,7 @@ public class MaidBrewingAddIngredientsTask extends Behavior<EntityMaid> {
         if (cooldown > 0) {
             maid.swing(InteractionHand.MAIN_HAND);
         }
+        MaidBrewingStateManager.resetWorkExpiration(maid);
     }
 
     private @Nullable BrewingSession getSession(EntityMaid maid) {

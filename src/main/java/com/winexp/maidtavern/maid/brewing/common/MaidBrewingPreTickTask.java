@@ -5,6 +5,7 @@ import com.github.tartaricacid.touhoulittlemaid.entity.passive.MaidPathFindingBF
 import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.google.common.collect.ImmutableMap;
 import com.winexp.maidtavern.MaidTavern;
+import com.winexp.maidtavern.config.MaidTavernConfig;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.brewing.*;
 import net.minecraft.core.BlockPos;
@@ -82,9 +83,9 @@ public class MaidBrewingPreTickTask extends Behavior<EntityMaid> {
             if (pathfindingAttempt == null) {
                 brain.setMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get(), 0);
             }
-            Integer time = brain.getMemory(MaidTavernEntities.PATH_FINDING_TIME.get()).orElse(null);
+            Integer time = brain.getMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get()).orElse(null);
             if (time == null) {
-                brain.setMemory(MaidTavernEntities.PATH_FINDING_TIME.get(), 0);
+                brain.setMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get(), 0);
             }
         }
     }
@@ -93,15 +94,15 @@ public class MaidBrewingPreTickTask extends Behavior<EntityMaid> {
         Brain<EntityMaid> brain = maid.getBrain();
         BrewingWork work = MaidBrewingStateManager.getWork(maid);
         if (work == null) return;
-        int time = brain.getMemory(MaidTavernEntities.PATH_FINDING_TIME.get()).get() + 1;
-        if (work.isCloseEnough(maid)) {
+        int time = brain.getMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get()).get() + 1;
+        if (!work.isCloseEnough(maid)) {
             if (time != 1) {
-                brain.setMemory(MaidTavernEntities.PATH_FINDING_TIME.get(), 0);
+                brain.setMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get(), 0);
             }
             return;
         }
-        if (time <= 300) {
-            brain.setMemory(MaidTavernEntities.PATH_FINDING_TIME.get(), time);
+        if (time <= MaidTavernConfig.CONFIG.workExpirationTime.get()) {
+            brain.setMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get(), time);
         } else {
             MaidBrewingStateManager.stopWork(maid);
             MaidTavern.LOGGER.warn("Work {} is stopped accidentally because of expiration", work.type());
@@ -117,7 +118,7 @@ public class MaidBrewingPreTickTask extends Behavior<EntityMaid> {
             Optional<WalkTarget> walkTarget = brain.getMemory(MemoryModuleType.WALK_TARGET);
             if (walkTarget.isEmpty() || !walkTarget.get().getTarget().currentPosition().equals(pos.getCenter())) {
                 int attempt = brain.getMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get()).get() + 1;
-                if (attempt <= 2) {
+                if (attempt <= MaidTavernConfig.CONFIG.pathFindingAttempt.get()) {
                     BehaviorUtils.setWalkAndLookTargetMemories(maid, pos, work.movementSpeed(), 0);
                     brain.setMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get(), attempt);
                 } else {

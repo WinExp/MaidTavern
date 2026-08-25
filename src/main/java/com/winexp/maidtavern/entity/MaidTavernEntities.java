@@ -35,8 +35,8 @@ public class MaidTavernEntities {
             register("brewing_work", BrewingWork.CODEC);
     public static final RegistryObject<MemoryModuleType<Integer>> PATH_FINDING_ATTEMPT =
             register("path_finding_attempt", Codec.INT);
-    public static final RegistryObject<MemoryModuleType<Integer>> PATH_FINDING_TIME =
-            register("path_finding_time", Codec.INT);
+    public static final RegistryObject<MemoryModuleType<Integer>> WORK_EXPIRATION_TIME =
+            register("work_expiration_time", Codec.INT);
 
     private static <T> RegistryObject<MemoryModuleType<T>> register(String name, @Nullable Codec<T> codec) {
         return MEMORY_MODULE_TYPES.register(name, () -> new MemoryModuleType<>(Optional.ofNullable(codec)));
