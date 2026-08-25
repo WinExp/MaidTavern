@@ -101,6 +101,8 @@ public class MaidBrewingMoveToStorageTask extends MaidSurroundingMoveTask {
             if (binding == null || binding.byproducts().contains(pos)) return true;
         }
 
+        if (binding != null && !binding.ingredients().contains(pos)) return false;
+
         for (BrewingList.Entry entry : entries) {
             BrewingList.Config config = entry.config();
             List<BlockPos> barrelPosList = new ArrayList<>(config.barrelPos());
@@ -120,11 +122,9 @@ public class MaidBrewingMoveToStorageTask extends MaidSurroundingMoveTask {
             }
             if (!valid) continue;
 
-            if (ItemHandlerUtil.canInsertAny(maidInv, task.getIngredientsToExtract(maidInv, containerInv, level.getRecipeManager(), entry).stream().map(Pair::getFirst).toList())) {
-                if (binding == null || binding.ingredients().contains(pos)) {
-                    selectedEntry = entry;
-                    return true;
-                }
+            if (ItemHandlerUtil.canInsertAll(maidInv, task.getIngredientsToExtract(maidInv, containerInv, level.getRecipeManager(), entry).stream().map(Pair::getFirst).toList())) {
+                selectedEntry = entry;
+                return true;
             }
         }
         return false;
