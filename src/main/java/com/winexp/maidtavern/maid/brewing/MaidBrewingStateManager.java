@@ -1,6 +1,7 @@
 package com.winexp.maidtavern.maid.brewing;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
+import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -49,6 +50,7 @@ public class MaidBrewingStateManager {
         brain.setMemory(MaidTavernEntities.BREWING_WORK.get(), work);
         brain.setMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get(), 0);
         brain.setMemory(MaidTavernEntities.PATH_FINDING_TIME.get(), 0);
+        brain.eraseMemory(InitEntities.TARGET_POS.get());
     }
 
     public static void stopWork(EntityMaid maid) {
