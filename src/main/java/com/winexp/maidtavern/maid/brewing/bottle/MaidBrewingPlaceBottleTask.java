@@ -62,5 +62,6 @@ public class MaidBrewingPlaceBottleTask extends Behavior<EntityMaid> {
         FakePlayer fakePlayer = new FakePlayer(level, new GameProfile(FAKE_PLAYER_UUID, "Arm"));
         ((TapBlock) ModBlocks.TAP.get()).useItemOn(ItemStack.EMPTY, tapState, level, pos.above(), fakePlayer, InteractionHand.MAIN_HAND, null);
         maid.swing(InteractionHand.MAIN_HAND);
+        MaidBrewingStateManager.resetWorkExpiration(maid);
     }
 }

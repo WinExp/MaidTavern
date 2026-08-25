@@ -49,8 +49,17 @@ public class MaidBrewingStateManager {
         Brain<EntityMaid> brain = maid.getBrain();
         brain.setMemory(MaidTavernEntities.BREWING_WORK.get(), work);
         brain.setMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get(), 0);
-        brain.setMemory(MaidTavernEntities.PATH_FINDING_TIME.get(), 0);
+        brain.setMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get(), 0);
         brain.eraseMemory(InitEntities.TARGET_POS.get());
+    }
+
+    public static void resetWorkExpiration(EntityMaid maid) {
+        ensureIsBrewTask(maid);
+        if (!isWorking(maid)) {
+            throw new IllegalStateException();
+        }
+        Brain<EntityMaid> brain = maid.getBrain();
+        brain.setMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get(), 0);
     }
 
     public static void stopWork(EntityMaid maid) {
@@ -61,7 +70,7 @@ public class MaidBrewingStateManager {
         Brain<EntityMaid> brain = maid.getBrain();
         brain.eraseMemory(MaidTavernEntities.BREWING_WORK.get());
         brain.eraseMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get());
-        brain.eraseMemory(MaidTavernEntities.PATH_FINDING_TIME.get());
+        brain.eraseMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get());
     }
 
     public static int getRotationCounter(EntityMaid maid) {

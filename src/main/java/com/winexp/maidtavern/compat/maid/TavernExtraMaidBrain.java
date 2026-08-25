@@ -25,7 +25,7 @@ public class TavernExtraMaidBrain implements IExtraMaidBrain {
 
                 MaidTavernEntities.BREWING_WORK.get(),
                 MaidTavernEntities.PATH_FINDING_ATTEMPT.get(),
-                MaidTavernEntities.PATH_FINDING_TIME.get()
+                MaidTavernEntities.WORK_EXPIRATION_TIME.get()
         );
     }
 
