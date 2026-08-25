@@ -42,6 +42,14 @@ public class ItemHandlerUtil {
         return false;
     }
 
+    public static boolean canInsertAll(IItemHandler itemHandler, List<ItemStack> stacks) {
+        if (stacks.isEmpty()) return false;
+        for (ItemStack stack : stacks) {
+            if (!canInsert(itemHandler, stack)) return false;
+        }
+        return true;
+    }
+
     public static boolean contains(IItemHandler itemHandler, Predicate<ItemStack> predicate) {
         return matchesCount(itemHandler, predicate, MinMaxBounds.Ints.atLeast(1));
     }

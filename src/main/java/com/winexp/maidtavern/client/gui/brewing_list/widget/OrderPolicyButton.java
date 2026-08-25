@@ -5,6 +5,7 @@ import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.maid.brewing.BrewingList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
@@ -30,6 +31,7 @@ public class OrderPolicyButton extends ExtendedButton {
     public OrderPolicyButton(int x, int y, int width, int height, Component text, OnPress handler, BrewingList.OrderPolicy orderPolicy) {
         super(x, y, width, height, text, handler);
         this.orderPolicy = orderPolicy;
+        setTooltip(Tooltip.create(Component.translatable("maidtavern.brewing_list.order_policy." + orderPolicy.getSerializedName())));
     }
 
     public BrewingList.OrderPolicy getOrderPolicy() {

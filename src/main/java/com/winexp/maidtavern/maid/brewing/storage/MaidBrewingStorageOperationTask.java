@@ -16,10 +16,11 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.wrapper.InvWrapper;
+
+import java.util.List;
 
 public class MaidBrewingStorageOperationTask extends Behavior<EntityMaid> {
     private final IBrewingTask task;
@@ -48,23 +49,27 @@ public class MaidBrewingStorageOperationTask extends Behavior<EntityMaid> {
 
     private void extractStacks(EntityMaid maid, IItemHandlerModifiable storage, IItemHandlerModifiable inventory) {
         Brain<EntityMaid> brain = maid.getBrain();
-        IItemHandler maidInv = maid.getAvailableInv(true);
-        for (Pair<ItemStack, Integer> pair : task.getBottlesToExtract(maidInv, storage)) {
-            ItemStack stack = pair.getFirst();
-            int count = pair.getSecond();
-            if (!ItemHandlerUtil.canInsert(inventory, stack.copyWithCount(count))) continue;
-            ItemHandlerHelper.insertItemStacked(inventory, stack.copyWithCount(count), false);
-            stack.shrink(count);
+        List<Pair<ItemStack, Integer>> bottles = task.getBottlesToExtract(inventory, storage);
+        if (ItemHandlerUtil.canInsertAny(inventory, bottles.stream().map(Pair::getFirst).toList())) {
+            for (Pair<ItemStack, Integer> pair : bottles) {
+                ItemStack stack = pair.getFirst();
+                int count = pair.getSecond();
+                if (!ItemHandlerUtil.canInsert(inventory, stack.copyWithCount(count))) continue;
+                ItemHandlerHelper.insertItemStacked(inventory, stack.copyWithCount(count), false);
+                stack.shrink(count);
+            }
         }
 
         BrewingSession session = brain.getMemory(MaidTavernEntities.BREWING_SESSION.get()).orElse(null);
         if (session == null) return;
-        for (Pair<ItemStack, Integer> pair : task.getIngredientsToExtract(maidInv, storage, maid.level().getRecipeManager(), session.entry())) {
-            ItemStack stack = pair.getFirst();
-            int count = pair.getSecond();
-            if (!ItemHandlerUtil.canInsert(inventory, stack.copyWithCount(count))) continue;
-            ItemHandlerHelper.insertItemStacked(inventory, stack.copyWithCount(count), false);
-            stack.shrink(count);
+        List<Pair<ItemStack, Integer>> ingredients = task.getIngredientsToExtract(inventory, storage, maid.level().getRecipeManager(), session.entry());
+        if (ItemHandlerUtil.canInsertAll(inventory, ingredients.stream().map(Pair::getFirst).toList())) {
+            for (Pair<ItemStack, Integer> pair : ingredients) {
+                ItemStack stack = pair.getFirst();
+                int count = pair.getSecond();
+                ItemHandlerHelper.insertItemStacked(inventory, stack.copyWithCount(count), false);
+                stack.shrink(count);
+            }
         }
         brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), session.withStage(BrewingSession.Stage.START_BREWING));
     }

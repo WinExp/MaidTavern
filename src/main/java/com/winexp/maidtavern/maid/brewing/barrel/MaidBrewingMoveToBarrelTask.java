@@ -81,7 +81,6 @@ public class MaidBrewingMoveToBarrelTask extends MaidSurroundingMoveTask {
             }
             BehaviorUtils.setWalkAndLookTargetMemories(maid, barrelPos, movementSpeed, 0);
             MaidBrewingStateManager.startWork(maid, new BrewingWork(BrewingWorkTypes.ADD_INGREDIENTS, barrelPos, movementSpeed, closeEnoughDist));
-            MaidBrewingStateManager.addRotationCounter(maid);
         } else {
             searchForDestination(level, maid);
             var targetPos = brain.getMemory(InitEntities.TARGET_POS.get());

@@ -16,5 +16,7 @@
   "item.maidtavern.storage_binding_tool.type.byproducts": "副产物",
   "item.maidtavern.barrel_selection_tool": "酒桶选择工具",
   "item.maidtavern.barrel_selection_tool.tooltip.title": "坐标：",
-  "maidtavern.target_selection.tooltip.remaining": "...剩余 %s 个坐标"
+  "maidtavern.target_selection.tooltip.remaining": "...剩余 %s 个坐标",
+  "maidtavern.brewing_list.order_policy.rotation": "轮换",
+  "maidtavern.brewing_list.order_policy.random": "随机"
 }
