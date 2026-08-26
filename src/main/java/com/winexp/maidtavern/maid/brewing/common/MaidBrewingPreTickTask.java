@@ -93,12 +93,6 @@ public class MaidBrewingPreTickTask extends Behavior<EntityMaid> {
         BrewingWork work = MaidBrewingStateManager.getWork(maid);
         if (work == null) return;
         int time = brain.getMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get()).get() + 1;
-        if (!work.isCloseEnough(maid)) {
-            if (time != 1) {
-                brain.setMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get(), 0);
-            }
-            return;
-        }
         if (time <= MaidTavernConfig.CONFIG.workExpirationTime.getAsInt()) {
             brain.setMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get(), time);
         } else {
