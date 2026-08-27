@@ -5,7 +5,7 @@ import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.core.MaidDrinkTask;
+import com.winexp.maidtavern.maid.core.MaidDrinkingTask;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 
@@ -32,7 +32,7 @@ public class TavernExtraMaidBrain implements IExtraMaidBrain {
     @Override
     public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> getCoreBehaviors() {
         return Lists.newArrayList(
-                Pair.of(5, new MaidDrinkTask())
+                Pair.of(5, new MaidDrinkingTask())
         );
     }
 }
