@@ -21,13 +21,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Predicate;
 
-public class MaidDrinkTask extends MaidCheckRateTask {
+public class MaidDrinkingTask extends MaidCheckRateTask {
     private static final Predicate<ItemStack> DRINK_PREDICATE = stack -> {
         Item item = stack.getItem();
         return item instanceof DrinkBlockItem || item instanceof MolotovBlockItem;
     };
 
-    public MaidDrinkTask() {
+    public MaidDrinkingTask() {
         super(ImmutableMap.of());
         setMaxCheckRate(600);
     }
@@ -42,6 +42,7 @@ public class MaidDrinkTask extends MaidCheckRateTask {
 
     @Override
     protected void start(ServerLevel level, EntityMaid maid, long gameTime) {
+        if (maid.getRandom().nextFloat() < 0.5f) return;
         for (InteractionHand hand : InteractionHand.values()) {
             ItemStack stack = maid.getItemInHand(hand);
             if (tryDrink(maid, stack, hand)) return;
