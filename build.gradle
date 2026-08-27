@@ -21,7 +21,7 @@ group = mod_group_id
 modrinth {
     token = System.getenv("MODRINTH_TOKEN") // Remember to have the MODRINTH_TOKEN environment variable set or else this will fail - just make sure it stays private!
     projectId = modrinth_project // This can be the project ID or the slug. Either will work!
-    versionType = "beta" // This is the default -- can also be `beta` or `alpha`
+    versionType = "release" // This is the default -- can also be `beta` or `alpha`
     def baseVersion = "${version}-neoforge+mc${minecraft_version}"
     versionNumber = baseVersion
     versionName = "${mod_name} ${baseVersion}"
