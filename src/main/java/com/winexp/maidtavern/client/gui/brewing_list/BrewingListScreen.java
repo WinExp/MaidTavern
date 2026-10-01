@@ -349,7 +349,10 @@ public class BrewingListScreen extends AbstractContainerScreen<BrewingListScreen
         }
 
         private Tooltip getButtonTooltip(List<BlockPos> positions) {
-            MutableComponent tooltip = Component.empty();
+            if (positions.isEmpty()) {
+                return Tooltip.create(Component.translatable("maidtavern.brewing_list.barrel_selection.tooltip"));
+            }
+            MutableComponent tooltip = Component.translatable("maidtavern.brewing_list.barrel_selection.tooltip.position").append("\n");
             for (int i = 0; i < positions.size(); i++) {
                 BlockPos pos = positions.get(i);
                 Component component = Component.literal("[")
