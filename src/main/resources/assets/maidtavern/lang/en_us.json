@@ -17,6 +17,8 @@
   "item.maidtavern.barrel_selection_tool": "Barrel Selection Tool",
   "item.maidtavern.barrel_selection_tool.tooltip.title": "Positions:",
   "maidtavern.target_selection.tooltip.remaining": "...%s positions remaining",
+  "maidtavern.brewing_list.barrel_selection.tooltip": "Bind barrels",
+  "maidtavern.brewing_list.barrel_selection.tooltip.position": "Barrel positions:",
   "maidtavern.brewing_list.order_policy.rotation": "Rotation",
   "maidtavern.brewing_list.order_policy.random": "Random"
 }
