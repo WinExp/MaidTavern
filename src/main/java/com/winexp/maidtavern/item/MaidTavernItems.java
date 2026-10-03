@@ -2,8 +2,8 @@ package com.winexp.maidtavern.item;
 
 import com.google.common.collect.ImmutableSet;
 import com.winexp.maidtavern.MaidTavern;
-import com.winexp.maidtavern.maid.brewing.BrewingList;
-import com.winexp.maidtavern.maid.brewing.StorageBinding;
+import com.winexp.maidtavern.maid.behavior.brewing.BrewingList;
+import com.winexp.maidtavern.maid.behavior.brewing.StorageBinding;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;

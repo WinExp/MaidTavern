@@ -4,6 +4,8 @@
   "task.maidtavern.grape.condition.has_shears": "主手持有剪刀时，能够额外掉落",
   "task.maidtavern.brewing": "酿酒",
   "task.maidtavern.brewing.desc": "女仆会根据酿造清单主动酿造，取出酒",
+  "task.maidtavern.waiter": "侍者",
+  "task.maidtavern.waiter.desc": "女仆会根据订单从库存中取酒，并将其运送到指定位置",
   "item.maidtavern.brewing_list": "酿造清单",
   "item.maidtavern.brewing_list.load": "已加载酿造清单",
   "item.maidtavern.brewing_list.save": "已保存酿造清单",

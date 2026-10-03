@@ -1,0 +1,158 @@
+package com.winexp.maidtavern.maid.behavior.waiter.delivering;
+
+import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
+import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.BottleBlock;
+import com.github.ysbbbbbb.kaleidoscopetavern.block.brew.DrinkBlock;
+import com.github.ysbbbbbb.kaleidoscopetavern.item.BottleBlockItem;
+import com.github.ysbbbbbb.kaleidoscopetavern.item.DrinkBlockItem;
+import com.google.common.collect.ImmutableMap;
+import com.mojang.authlib.GameProfile;
+import com.winexp.maidtavern.entity.MaidTavernEntities;
+import com.winexp.maidtavern.maid.behavior.waiter.Order;
+import com.winexp.maidtavern.maid.behavior.waiter.WaiterWorkTypes;
+import com.winexp.maidtavern.maid.work.MaidWorkManager;
+import com.winexp.maidtavern.maid.work.Work;
+import com.winexp.maidtavern.util.ItemHandlerUtil;
+import net.minecraft.advancements.critereon.MinMaxBounds;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.behavior.Behavior;
+import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.items.IItemHandler;
+
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
+
+public class MaidWaiterDeliveringTask extends Behavior<EntityMaid> {
+    private static final UUID FAKE_PLAYER_UUID = UUID.randomUUID();
+
+    public MaidWaiterDeliveringTask() {
+        super(ImmutableMap.of(
+                MaidTavernEntities.CURRENT_WORK.get(), MemoryStatus.VALUE_PRESENT,
+                MaidTavernEntities.WAITER_ORDERS.get(), MemoryStatus.VALUE_PRESENT
+        ));
+    }
+
+    @Override
+    protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
+        if (!MaidWorkManager.isSameWorkType(maid, WaiterWorkTypes.DELIVERING)) return false;
+        Work work = MaidWorkManager.getWork(maid);
+
+        return work.isCloseEnough(maid);
+    }
+
+    @Override
+    protected void start(ServerLevel level, EntityMaid maid, long gameTime) {
+        Brain<EntityMaid> brain = maid.getBrain();
+        Work work = MaidWorkManager.getWork(maid);
+        List<Order> orders = brain.getMemory(MaidTavernEntities.WAITER_ORDERS.get()).get();
+        IItemHandler maidInv = maid.getAvailableInv(true);
+        order:
+        for (Order order : orders) {
+            if (order.stage() != Order.Stage.DELIVERING) continue;
+            if (!order.targetPos().contains(work.pos())) {
+                continue;
+            }
+            for (ItemStack targetStack : order.items()) {
+                if (!ItemHandlerUtil.matchesCount(maidInv, stack ->
+                        ItemStack.isSameItemSameComponents(stack, targetStack), MinMaxBounds.Ints.atLeast(targetStack.getCount()))) {
+                    continue order;
+                }
+            }
+            List<BlockPos> sortedPos = order.targetPos().stream().sorted(Comparator.comparingDouble(blockPos ->
+                    maid.distanceToSqr(blockPos.getCenter()))).toList();
+            for (BlockPos pos : sortedPos) {
+                if (maid.distanceToSqr(pos.getCenter()) > Math.pow(work.closeEnoughDist(), 2)) {
+                    MaidWorkManager.stopWork(maid);
+                    if (!order.items().isEmpty()) {
+                        BehaviorUtils.setWalkAndLookTargetMemories(maid, pos, work.movementSpeed(), 0);
+                        MaidWorkManager.startWork(maid, new Work(WaiterWorkTypes.TASK, WaiterWorkTypes.DELIVERING, pos, work.movementSpeed(), work.closeEnoughDist()));
+                    }
+                    return;
+                }
+                BlockState state = level.getBlockState(pos);
+                if (level.getBlockState(pos.below()).canBeReplaced()) continue;
+                Iterator<ItemStack> it = order.items().iterator();
+                while (it.hasNext()) {
+                    ItemStack targetStack = it.next();
+                    if (targetStack.isEmpty()) {
+                        it.remove();
+                        continue;
+                    }
+                    ItemStack stackCopy = targetStack.copy();
+                    int consumes = 0;
+                    if (targetStack.getItem() instanceof BottleBlockItem bottleItem) {
+                        BlockHitResult hitResult;
+                        boolean isDrink = state.getBlock() instanceof DrinkBlock && targetStack.getItem() instanceof DrinkBlockItem;
+                        if (isDrink) {
+                            hitResult = BlockHitResult.miss(pos.getCenter(), Direction.UP, pos);
+                        } else {
+                            hitResult = BlockHitResult.miss(pos.below().getCenter(), Direction.UP, pos.below());
+                        }
+                        FakePlayer player = new FakePlayer(level, new GameProfile(FAKE_PLAYER_UUID, "Arm"));
+                        player.setItemInHand(InteractionHand.MAIN_HAND, targetStack);
+                        int count = targetStack.getCount();
+                        for (int i = 0; i < count; i++) {
+                            InteractionResult result;
+                            if (isDrink)  {
+                                DrinkBlockItem drink = (DrinkBlockItem) targetStack.getItem();
+                                result = drink.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hitResult)) == InteractionResult.SUCCESS
+                                        ? InteractionResult.SUCCESS : InteractionResult.FAIL;
+                            } else {
+                                result = bottleItem.place(new BlockPlaceContext(player, InteractionHand.MAIN_HAND, targetStack, hitResult));
+                            }
+                            if (result.consumesAction()) {
+                                state = level.getBlockState(pos);
+                                if (!isDrink && state.getBlock() instanceof DrinkBlock) {
+                                    hitResult = BlockHitResult.miss(pos.getCenter(), Direction.UP, pos);
+                                    isDrink = true;
+                                }
+                                consumes++;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                    shrinkItems(maidInv, stackCopy, consumes);
+                    if (targetStack.isEmpty()) {
+                        it.remove();
+                    }
+                }
+                order.targetPos().remove(pos);
+            }
+            for (ItemStack targetStack : order.items()) {
+                if (!targetStack.isEmpty()) {
+                    shrinkItems(maidInv, targetStack, targetStack.getCount());
+                    BottleBlock.popResource(level, maid.blockPosition(), targetStack);
+                }
+            }
+            MaidWorkManager.stopWork(maid);
+            break;
+        }
+    }
+
+    private int shrinkItems(IItemHandler inv, ItemStack stack, int count) {
+        List<ItemStack> invStacks = ItemHandlerUtil.findStacks(inv, stack1 ->
+                ItemStack.isSameItemSameComponents(stack, stack1));
+        for (ItemStack invStack : invStacks) {
+            int shrinkCount = Math.min(count, invStack.getCount());
+            invStack.shrink(shrinkCount);
+            count -= shrinkCount;
+            if (count <= 0) break;
+        }
+        return count;
+    }
+}

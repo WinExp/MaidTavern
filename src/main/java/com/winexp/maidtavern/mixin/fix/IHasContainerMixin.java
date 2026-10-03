@@ -3,7 +3,7 @@ package com.winexp.maidtavern.mixin.fix;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.ysbbbbbb.kaleidoscopetavern.item.IHasContainer;
 import com.llamalad7.mixinextras.sugar.Local;
-import com.winexp.maidtavern.maid.task.IMaidTaskExt;
+import com.winexp.maidtavern.maid.behavior.core.IMaidTaskExt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;

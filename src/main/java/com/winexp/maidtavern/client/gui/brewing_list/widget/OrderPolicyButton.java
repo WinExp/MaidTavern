@@ -2,7 +2,7 @@ package com.winexp.maidtavern.client.gui.brewing_list.widget;
 
 import com.google.common.collect.Maps;
 import com.winexp.maidtavern.MaidTavern;
-import com.winexp.maidtavern.maid.brewing.BrewingList;
+import com.winexp.maidtavern.maid.behavior.brewing.BrewingList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;

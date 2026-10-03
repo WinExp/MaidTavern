@@ -5,7 +5,8 @@ import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.core.MaidDrinkingTask;
+import com.winexp.maidtavern.maid.behavior.core.MaidDrinkingTask;
+import com.winexp.maidtavern.maid.behavior.core.MaidWorkPreCheckTask;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 
@@ -23,9 +24,12 @@ public class TavernExtraMaidBrain implements IExtraMaidBrain {
 
                 MaidTavernEntities.STORAGE_BINDING.get(),
 
-                MaidTavernEntities.BREWING_WORK.get(),
+                MaidTavernEntities.CURRENT_WORK.get(),
                 MaidTavernEntities.PATH_FINDING_ATTEMPT.get(),
-                MaidTavernEntities.WORK_EXPIRATION_TIME.get()
+                MaidTavernEntities.WORK_EXPIRATION_TIME.get(),
+
+                MaidTavernEntities.WAITER_ORDERS.get(),
+                MaidTavernEntities.WAITER_STORAGE_BINDING.get()
         );
     }
 
@@ -33,6 +37,13 @@ public class TavernExtraMaidBrain implements IExtraMaidBrain {
     public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> getCoreBehaviors() {
         return Lists.newArrayList(
                 Pair.of(5, new MaidDrinkingTask())
+        );
+    }
+
+    @Override
+    public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> getWorkBehaviors() {
+        return Lists.newArrayList(
+            Pair.of(Integer.MIN_VALUE, new MaidWorkPreCheckTask())
         );
     }
 }

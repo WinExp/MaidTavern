@@ -2,8 +2,8 @@ package com.winexp.maidtavern.item;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.brewing.StorageBinding;
-import com.winexp.maidtavern.maid.brewing.TaskBrewing;
+import com.winexp.maidtavern.maid.behavior.brewing.StorageBinding;
+import com.winexp.maidtavern.maid.behavior.brewing.TaskBrewing;
 import com.winexp.maidtavern.network.serverbound.ServerboundSetStorageBindingTypePayload;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.LocalPlayer;

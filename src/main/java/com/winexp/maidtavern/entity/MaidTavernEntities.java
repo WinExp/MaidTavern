@@ -1,11 +1,14 @@
 package com.winexp.maidtavern.entity;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.winexp.maidtavern.MaidTavern;
-import com.winexp.maidtavern.maid.brewing.BrewingList;
-import com.winexp.maidtavern.maid.brewing.BrewingSession;
-import com.winexp.maidtavern.maid.brewing.BrewingWork;
-import com.winexp.maidtavern.maid.brewing.StorageBinding;
+import com.winexp.maidtavern.maid.behavior.brewing.BrewingList;
+import com.winexp.maidtavern.maid.behavior.brewing.BrewingSession;
+import com.winexp.maidtavern.maid.behavior.brewing.StorageBinding;
+import com.winexp.maidtavern.maid.work.Work;
+import com.winexp.maidtavern.maid.behavior.waiter.Order;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.neoforged.bus.api.IEventBus;
@@ -13,6 +16,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 
 public class MaidTavernEntities {
@@ -31,8 +36,13 @@ public class MaidTavernEntities {
     public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<StorageBinding>> STORAGE_BINDING =
             register("storage_binding", StorageBinding.CODEC);
 
-    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<BrewingWork>> BREWING_WORK =
-            register("brewing_work", BrewingWork.CODEC);
+    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<LinkedList<Order>>> WAITER_ORDERS =
+            register("waiter_orders", Order.CODEC.listOf().xmap(LinkedList::new, List::copyOf));
+    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<ImmutableList<BlockPos>>> WAITER_STORAGE_BINDING =
+            register("waiter_storage_binding", BlockPos.CODEC.listOf().xmap(ImmutableList::copyOf, List::copyOf));
+
+    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Work>> CURRENT_WORK =
+            register("current_work", Work.CODEC);
     public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Integer>> PATH_FINDING_ATTEMPT =
             register("path_finding_attempt", Codec.INT);
     public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Integer>> WORK_EXPIRATION_TIME =

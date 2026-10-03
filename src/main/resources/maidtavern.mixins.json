@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "fix.BarrelBlockMixin",
+    "fix.BottleBlockMixin",
     "fix.IHasContainerMixin",
     "fix.ItemUtilsMixin"
   ],

@@ -4,8 +4,9 @@ import com.github.tartaricacid.touhoulittlemaid.api.ILittleMaid;
 import com.github.tartaricacid.touhoulittlemaid.api.LittleMaidExtension;
 import com.github.tartaricacid.touhoulittlemaid.entity.ai.brain.ExtraMaidBrainManager;
 import com.github.tartaricacid.touhoulittlemaid.entity.task.TaskManager;
-import com.winexp.maidtavern.maid.grape.TaskGrape;
-import com.winexp.maidtavern.maid.brewing.TaskBrewing;
+import com.winexp.maidtavern.maid.behavior.grape.TaskGrape;
+import com.winexp.maidtavern.maid.behavior.brewing.TaskBrewing;
+import com.winexp.maidtavern.maid.behavior.waiter.TaskWaiter;
 
 @LittleMaidExtension
 public class LittleMaidCompat implements ILittleMaid {
@@ -13,6 +14,7 @@ public class LittleMaidCompat implements ILittleMaid {
     public void addMaidTask(TaskManager manager) {
         manager.add(new TaskGrape());
         manager.add(new TaskBrewing());
+        manager.add(new TaskWaiter());
     }
 
     @Override

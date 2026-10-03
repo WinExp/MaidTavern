@@ -4,6 +4,8 @@
   "task.maidtavern.grape.condition.has_shears": "Mainhand holds a shear (the grape will drop additionally)",
   "task.maidtavern.brewing": "Brewing",
   "task.maidtavern.brewing.desc": "Maid will brew and extract the wine according to the brewing list.",
+  "task.maidtavern.waiter": "Waiter",
+  "task.maidtavern.waiter.desc": "Maid will retrieve the wine from storage according to the order and deliver it to the specified location.",
   "item.maidtavern.brewing_list": "Brewing List",
   "item.maidtavern.brewing_list.load": "Loaded the brewing list",
   "item.maidtavern.brewing_list.save": "Saved the brewing list",
