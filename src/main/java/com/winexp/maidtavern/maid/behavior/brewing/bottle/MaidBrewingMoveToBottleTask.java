@@ -47,6 +47,6 @@ public class MaidBrewingMoveToBottleTask extends MaidSurroundingMoveTask {
     @Override
     protected boolean shouldMoveTo(ServerLevel level, EntityMaid maid, BlockPos pos) {
         if (!task.isBottleValid(maid, pos) && !task.shouldPlaceBottle(maid, pos)) return false;
-        return !MaidUtil.isTargetOccupied(maid, pos);
+        return !MaidUtil.isWorkPosOccupied(maid, pos);
     }
 }

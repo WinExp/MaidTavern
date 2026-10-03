@@ -48,16 +48,14 @@ public class MaidWaiterMoveToTargetTask extends MaidCheckRateTask {
         order:
         while (it.hasNext()) {
             Order order = it.next();
+            if (order.stage() != Order.Stage.DELIVERING) continue;
             for (ItemStack targetStack : order.items()) {
                 if (!ItemHandlerUtil.matchesCount(maidInv, stack ->
                         ItemStack.isSameItemSameComponents(stack, targetStack), MinMaxBounds.Ints.atLeast(targetStack.getCount()))) {
-                    if (order.stage() == Order.Stage.DELIVERING) {
-                        it.remove();
-                    }
+                    it.remove();
                     continue order;
                 }
             }
-            if (order.stage() != Order.Stage.DELIVERING) continue;
             BlockPos nearestPos = order.targetPos().stream().min(Comparator.comparingDouble(blockPos ->
                     maid.distanceToSqr(blockPos.getCenter()))).get();
             BehaviorUtils.setWalkAndLookTargetMemories(maid, nearestPos, movementSpeed, 0);

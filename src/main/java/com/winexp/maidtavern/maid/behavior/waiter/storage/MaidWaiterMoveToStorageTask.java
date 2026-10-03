@@ -22,6 +22,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 import java.util.List;
+import java.util.ListIterator;
 
 public class MaidWaiterMoveToStorageTask extends MaidSurroundingMoveTask {
     private final float movementSpeed;
@@ -59,16 +60,29 @@ public class MaidWaiterMoveToStorageTask extends MaidSurroundingMoveTask {
         if (container == null) return false;
         IItemHandler containerInv = new InvWrapper(container);
         IItemHandler maidInv = maid.getAvailableInv(true);
+        ListIterator<Order> it = orders.listIterator();
         order:
-        for (Order order : orders) {
+        while (it.hasNext()) {
+            Order order = it.next();
             if (order.stage() != Order.Stage.RETRIEVING) continue;
+            boolean hasAllItems = true;
+            for (ItemStack targetStack : order.items()) {
+                if (!ItemHandlerUtil.matchesCount(maidInv, stack ->
+                        ItemStack.isSameItemSameComponents(stack, targetStack), MinMaxBounds.Ints.atLeast(targetStack.getCount()))) {
+                    hasAllItems = false;
+                }
+            }
+            if (hasAllItems) {
+                it.set(order.withStage(Order.Stage.DELIVERING));
+                continue;
+            }
             for (ItemStack targetStack : order.items()) {
                 if (!ItemHandlerUtil.matchesCount(containerInv, stack ->
                         ItemStack.isSameItemSameComponents(stack, targetStack), MinMaxBounds.Ints.atLeast(targetStack.getCount()))) {
                     continue order;
                 }
             }
-            if (!ItemHandlerUtil.canInsertAll(maidInv, List.copyOf(order.items()))) {
+            if (!ItemHandlerUtil.canInsertAll(maidInv, order.items())) {
                 continue;
             }
             return true;

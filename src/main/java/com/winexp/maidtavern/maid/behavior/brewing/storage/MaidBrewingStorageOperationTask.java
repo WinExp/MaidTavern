@@ -15,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
@@ -57,7 +58,7 @@ public class MaidBrewingStorageOperationTask extends Behavior<EntityMaid> {
             for (Pair<ItemStack, Integer> pair : bottles) {
                 ItemStack stack = pair.getFirst();
                 int count = pair.getSecond();
-                if (!ItemHandlerUtil.canInsert(inventory, stack.copyWithCount(count))) continue;
+                if (!ItemHandlerUtil.canInsert(inventory, stack.copyWithCount(count), false)) continue;
                 ItemHandlerHelper.insertItemStacked(inventory, stack.copyWithCount(count), false);
                 stack.shrink(count);
             }
@@ -79,7 +80,7 @@ public class MaidBrewingStorageOperationTask extends Behavior<EntityMaid> {
 
     private void insertResults(EntityMaid maid, IItemHandlerModifiable storage, IItemHandlerModifiable inventory) {
         for (ItemStack stack : task.getResultsToInsert(maid)) {
-            if (!ItemHandlerUtil.canInsert(storage, stack)) continue;
+            if (!ItemHandlerUtil.canInsert(storage, stack, true)) continue;
             ItemHandlerUtil.replaceStack(inventory, stack,
                     ItemHandlerHelper.insertItemStacked(storage, stack, false));
         }
@@ -87,7 +88,7 @@ public class MaidBrewingStorageOperationTask extends Behavior<EntityMaid> {
 
     private void insertByproducts(EntityMaid maid, IItemHandlerModifiable storage, IItemHandlerModifiable inventory) {
         for (ItemStack stack : task.getByproductsToInsert(maid)) {
-            if (!ItemHandlerUtil.canInsert(storage, stack)) continue;
+            if (!ItemHandlerUtil.canInsert(storage, stack, true)) continue;
             ItemHandlerUtil.replaceStack(inventory, stack,
                     ItemHandlerHelper.insertItemStacked(storage, stack, false));
         }
@@ -112,6 +113,7 @@ public class MaidBrewingStorageOperationTask extends Behavior<EntityMaid> {
             insertByproducts(maid, storage, inventory);
         }
         MaidWorkManager.stopWork(maid);
+        maid.swing(InteractionHand.MAIN_HAND);
         level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, maid.getSoundSource(), 1, 1);
     }
 }

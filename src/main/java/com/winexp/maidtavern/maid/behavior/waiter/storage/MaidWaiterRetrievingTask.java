@@ -15,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
@@ -68,7 +69,7 @@ public class MaidWaiterRetrievingTask extends Behavior<EntityMaid> {
                     continue order;
                 }
             }
-            if (!ItemHandlerUtil.canInsertAll(maidInv, List.copyOf(order.items()))) {
+            if (!ItemHandlerUtil.canInsertAll(maidInv, order.items())) {
                 continue;
             }
             for (ItemStack targetStack : order.items()) {
@@ -88,6 +89,7 @@ public class MaidWaiterRetrievingTask extends Behavior<EntityMaid> {
         }
         if (success) {
             MaidWorkManager.stopWork(maid);
+            maid.swing(InteractionHand.MAIN_HAND);
             level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, maid.getSoundSource(), 1, 1);
         }
     }

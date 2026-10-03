@@ -125,7 +125,8 @@ public class MaidBrewingMoveToStorageTask extends MaidSurroundingMoveTask {
             }
             if (!valid) continue;
 
-            if (ItemHandlerUtil.canInsertAll(maidInv, task.getIngredientsToExtract(maidInv, containerInv, level.getRecipeManager(), entry).stream().map(Pair::getFirst).toList())) {
+            if (ItemHandlerUtil.canInsertAll(maidInv, task.getIngredientsToExtract(maidInv, containerInv, level.getRecipeManager(), entry)
+                    .stream().map(Pair::getFirst).toList())) {
                 selectedEntry = entry;
                 return true;
             }

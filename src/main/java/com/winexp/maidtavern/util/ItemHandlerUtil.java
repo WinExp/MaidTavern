@@ -8,6 +8,7 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -30,22 +31,23 @@ public class ItemHandlerUtil {
         return true;
     }
 
-    public static boolean canInsert(IItemHandler itemHandler, ItemStack stack) {
-        return ItemHandlerHelper.insertItemStacked(itemHandler, stack.copy(), true).isEmpty();
+    public static boolean canInsert(IItemHandler itemHandler, ItemStack stack, boolean allowPartial) {
+        stack = allowPartial ? stack.copyWithCount(1) : stack.copy();
+        return ItemHandlerHelper.insertItemStacked(itemHandler, stack, true).isEmpty();
     }
 
-    public static boolean canInsertAny(IItemHandler itemHandler, List<ItemStack> stacks) {
+    public static boolean canInsertAny(IItemHandler itemHandler, Collection<ItemStack> stacks) {
         if (stacks.isEmpty()) return false;
         for (ItemStack stack : stacks) {
-            if (canInsert(itemHandler, stack)) return true;
+            if (canInsert(itemHandler, stack, true)) return true;
         }
         return false;
     }
 
-    public static boolean canInsertAll(IItemHandler itemHandler, List<ItemStack> stacks) {
+    public static boolean canInsertAll(IItemHandler itemHandler, Collection<ItemStack> stacks) {
         if (stacks.isEmpty()) return false;
         for (ItemStack stack : stacks) {
-            if (!canInsert(itemHandler, stack)) return false;
+            if (!canInsert(itemHandler, stack, false)) return false;
         }
         return true;
     }

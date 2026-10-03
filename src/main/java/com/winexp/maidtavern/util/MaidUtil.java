@@ -2,11 +2,11 @@ package com.winexp.maidtavern.util;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.MaidPathFindingBFS;
-import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
+import com.winexp.maidtavern.maid.work.MaidWorkManager;
+import com.winexp.maidtavern.maid.work.Work;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -17,9 +17,14 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import java.util.function.Function;
 
 public class MaidUtil {
-    public static boolean isTargetOccupied(EntityMaid maid, BlockPos pos) {
-        return isPosOccupied(maid, pos, maid1 -> maid1.getBrain().getMemory(InitEntities.TARGET_POS.get())
-                .map(PositionTracker::currentBlockPosition).orElse(null));
+    public static boolean isWorkPosOccupied(EntityMaid maid, BlockPos pos) {
+        Work work = MaidWorkManager.getWork(maid);
+        if (work == null) return false;
+        return isPosOccupied(maid, pos, maid1 -> {
+            if (!MaidWorkManager.isWorking(maid1)) return null;
+            else if (!MaidWorkManager.isSameWorkType(maid1, work.type())) return null;
+            else return MaidWorkManager.getWork(maid1).pos();
+        });
     }
 
     public static boolean isPosOccupied(EntityMaid maid, BlockPos pos, Function<EntityMaid, BlockPos> posGetter) {
