@@ -1,4 +1,4 @@
-package com.winexp.maidtavern.maid.work;
+package com.winexp.maidtavern.logistics.work;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.mojang.serialization.Codec;

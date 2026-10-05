@@ -10,8 +10,8 @@ import com.winexp.maidtavern.maid.behavior.brewing.*;
 import com.winexp.maidtavern.maid.behavior.brewing.barrel.MaidBrewingMoveToBarrelTask;
 import com.winexp.maidtavern.maid.behavior.core.MaidSurroundingMoveTask;
 import com.winexp.maidtavern.maid.behavior.brewing.BrewingWorkTypes;
-import com.winexp.maidtavern.maid.work.MaidWorkManager;
-import com.winexp.maidtavern.maid.work.Work;
+import com.winexp.maidtavern.logistics.work.MaidWorkHelper;
+import com.winexp.maidtavern.logistics.work.Work;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import com.winexp.maidtavern.util.MaidUtil;
 import com.winexp.maidtavern.util.Utils;
@@ -55,7 +55,7 @@ public class MaidBrewingMoveToStorageTask extends MaidSurroundingMoveTask {
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
         Brain<EntityMaid> brain = maid.getBrain();
         if (!super.checkExtraStartConditions(level, maid)
-                || MaidWorkManager.isWorking(maid)
+                || MaidWorkHelper.isWorking(maid)
                 || brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())
                 || !brain.hasMemoryValue(MaidTavernEntities.BREWING_LIST.get())) return false;
         return task.shouldExtract(maid) || !task.getResultsToInsert(maid).isEmpty() || !task.getByproductsToInsert(maid).isEmpty();
@@ -74,7 +74,7 @@ public class MaidBrewingMoveToStorageTask extends MaidSurroundingMoveTask {
         searchForDestination(level, maid);
         var targetPos = brain.getMemory(InitEntities.TARGET_POS.get()).orElse(null);
         if (targetPos == null) return;
-        MaidWorkManager.startWork(maid, new Work(BrewingWorkTypes.TASK, BrewingWorkTypes.STORAGE, targetPos.currentBlockPosition(), movementSpeed, closeEnoughDist));
+        MaidWorkHelper.startWork(maid, new Work(BrewingWorkTypes.TASK, BrewingWorkTypes.STORAGE, targetPos.currentBlockPosition(), movementSpeed, closeEnoughDist));
         if (selectedEntry != null) {
             brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), BrewingSession.create(selectedEntry, selectedBarrelPos));
             BrewingUtils.addRotationCounter(maid);

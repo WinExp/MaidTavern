@@ -1,4 +1,4 @@
-package com.winexp.maidtavern.maid.work;
+package com.winexp.maidtavern.logistics.work;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.Brain;
 import org.jetbrains.annotations.Nullable;
 
-public class MaidWorkManager {
+public class MaidWorkHelper {
     public static boolean isWorking(EntityMaid maid) {
         return maid.getBrain().hasMemoryValue(MaidTavernEntities.CURRENT_WORK.get());
     }

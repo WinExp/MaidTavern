@@ -18,8 +18,14 @@ public class MaidTavernConfig {
     }
 
     public MaidTavernConfig(ModConfigSpec.Builder builder) {
-        enableDrinking = builder.define("enable_drinking", true);
-        pathFindingAttempt = builder.defineInRange("path_finding_attempt", 4, 1, 10);
-        workExpirationTime = builder.defineInRange("work_expiration_time", 300, 200, Integer.MAX_VALUE);
+        enableDrinking = builder
+                .translation("config.maidtavern.enable_drinking")
+                .define("enable_drinking", true);
+        pathFindingAttempt = builder
+                .translation("config.maidtavern.path_finding_attempt")
+                .defineInRange("path_finding_attempt", 4, 1, 10);
+        workExpirationTime = builder
+                .translation("config.maidtavern.work_expiration_time")
+                .defineInRange("work_expiration_time", 300, 200, Integer.MAX_VALUE);
     }
 }

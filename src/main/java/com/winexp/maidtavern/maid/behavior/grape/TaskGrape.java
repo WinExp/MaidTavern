@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.item.ItemStack;
@@ -27,7 +28,7 @@ import java.util.function.Predicate;
 
 public class TaskGrape implements IGrapeTask {
     public static final int BASE_MAX_GRAPE_HEIGHT = 2;
-    private static final UUID FAKE_PLAYER_UUID = UUID.randomUUID();
+    private static final UUID FAKE_PLAYER_UUID = Mth.createInsecureUUID();
     private static final ResourceLocation UID = MaidTavern.asResource("grape");
     private static final ItemStack ICON = ModItems.GRAPE.toStack();
 

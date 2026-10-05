@@ -6,8 +6,8 @@ import com.mojang.datafixers.util.Pair;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.behavior.brewing.*;
 import com.winexp.maidtavern.maid.behavior.brewing.BrewingWorkTypes;
-import com.winexp.maidtavern.maid.work.MaidWorkManager;
-import com.winexp.maidtavern.maid.work.Work;
+import com.winexp.maidtavern.logistics.work.MaidWorkHelper;
+import com.winexp.maidtavern.logistics.work.Work;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import com.winexp.maidtavern.util.MaidUtil;
 import com.winexp.maidtavern.util.Utils;
@@ -40,8 +40,8 @@ public class MaidBrewingStorageOperationTask extends Behavior<EntityMaid> {
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
         Brain<EntityMaid> brain = maid.getBrain();
-        if (!MaidWorkManager.isSameWorkType(maid, BrewingWorkTypes.STORAGE)) return false;
-        Work work = MaidWorkManager.getWork(maid);
+        if (!MaidWorkHelper.isSameWorkType(maid, BrewingWorkTypes.STORAGE)) return false;
+        Work work = MaidWorkHelper.getWork(maid);
         BlockPos pos = work.pos();
         if (!MaidUtil.isStorageValid(level, pos)) return false;
 
@@ -97,7 +97,7 @@ public class MaidBrewingStorageOperationTask extends Behavior<EntityMaid> {
     @Override
     protected void start(ServerLevel level, EntityMaid maid, long gameTime) {
         Brain<EntityMaid> brain = maid.getBrain();
-        Work work = MaidWorkManager.getWork(maid);
+        Work work = MaidWorkHelper.getWork(maid);
         BlockPos pos = work.pos();
         Container container = Utils.getContainer(level, pos);
         IItemHandlerModifiable storage = new InvWrapper(container);
@@ -112,7 +112,7 @@ public class MaidBrewingStorageOperationTask extends Behavior<EntityMaid> {
         if (binding == null || binding.byproducts().contains(pos)) {
             insertByproducts(maid, storage, inventory);
         }
-        MaidWorkManager.stopWork(maid);
+        MaidWorkHelper.stopWork(maid);
         maid.swing(InteractionHand.MAIN_HAND);
         level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, maid.getSoundSource(), 1, 1);
     }

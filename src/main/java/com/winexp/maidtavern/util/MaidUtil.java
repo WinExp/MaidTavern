@@ -2,8 +2,8 @@ package com.winexp.maidtavern.util;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.MaidPathFindingBFS;
-import com.winexp.maidtavern.maid.work.MaidWorkManager;
-import com.winexp.maidtavern.maid.work.Work;
+import com.winexp.maidtavern.logistics.work.MaidWorkHelper;
+import com.winexp.maidtavern.logistics.work.Work;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,12 +18,12 @@ import java.util.function.Function;
 
 public class MaidUtil {
     public static boolean isWorkPosOccupied(EntityMaid maid, BlockPos pos) {
-        Work work = MaidWorkManager.getWork(maid);
+        Work work = MaidWorkHelper.getWork(maid);
         if (work == null) return false;
         return isPosOccupied(maid, pos, maid1 -> {
-            if (!MaidWorkManager.isWorking(maid1)) return null;
-            else if (!MaidWorkManager.isSameWorkType(maid1, work.type())) return null;
-            else return MaidWorkManager.getWork(maid1).pos();
+            if (!MaidWorkHelper.isWorking(maid1)) return null;
+            else if (!MaidWorkHelper.isSameWorkType(maid1, work.type())) return null;
+            else return MaidWorkHelper.getWork(maid1).pos();
         });
     }
 

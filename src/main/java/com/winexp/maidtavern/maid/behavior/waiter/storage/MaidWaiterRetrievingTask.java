@@ -3,10 +3,12 @@ package com.winexp.maidtavern.maid.behavior.waiter.storage;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.google.common.collect.ImmutableMap;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.behavior.waiter.Order;
+import com.winexp.maidtavern.logistics.waiter.Order;
+import com.winexp.maidtavern.logistics.waiter.WaiterOrderManager;
+import com.winexp.maidtavern.maid.behavior.waiter.OrderState;
 import com.winexp.maidtavern.maid.behavior.waiter.WaiterWorkTypes;
-import com.winexp.maidtavern.maid.work.MaidWorkManager;
-import com.winexp.maidtavern.maid.work.Work;
+import com.winexp.maidtavern.logistics.work.MaidWorkHelper;
+import com.winexp.maidtavern.logistics.work.Work;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import com.winexp.maidtavern.util.MaidUtil;
 import com.winexp.maidtavern.util.Utils;
@@ -25,7 +27,8 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 import java.util.List;
-import java.util.ListIterator;
+import java.util.Map;
+import java.util.UUID;
 
 public class MaidWaiterRetrievingTask extends Behavior<EntityMaid> {
     public MaidWaiterRetrievingTask() {
@@ -37,8 +40,8 @@ public class MaidWaiterRetrievingTask extends Behavior<EntityMaid> {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
-        if (!MaidWorkManager.isSameWorkType(maid, WaiterWorkTypes.RETRIEVING)) return false;
-        Work work = MaidWorkManager.getWork(maid);
+        if (!MaidWorkHelper.isSameWorkType(maid, WaiterWorkTypes.RETRIEVING)) return false;
+        Work work = MaidWorkHelper.getWork(maid);
         BlockPos pos = work.pos();
         if (!MaidUtil.isStorageValid(level, pos)) return false;
 
@@ -48,9 +51,10 @@ public class MaidWaiterRetrievingTask extends Behavior<EntityMaid> {
     @Override
     protected void start(ServerLevel level, EntityMaid maid, long gameTime) {
         Brain<EntityMaid> brain = maid.getBrain();
-        Work work = MaidWorkManager.getWork(maid);
+        Work work = MaidWorkHelper.getWork(maid);
         BlockPos pos = work.pos();
-        List<Order> orders = brain.getMemory(MaidTavernEntities.WAITER_ORDERS.get()).get();
+        WaiterOrderManager manager = WaiterOrderManager.get(level);
+        Map<UUID, OrderState> ordersMap = brain.getMemory(MaidTavernEntities.WAITER_ORDERS.get()).get();
         List<BlockPos> storageBinding = brain.getMemory(MaidTavernEntities.WAITER_STORAGE_BINDING.get()).orElse(null);
         if (storageBinding != null && !storageBinding.contains(pos)) return;
         Container container = Utils.getContainer(level, pos);
@@ -58,11 +62,9 @@ public class MaidWaiterRetrievingTask extends Behavior<EntityMaid> {
         IItemHandler containerInv = new InvWrapper(container);
         IItemHandler maidInv = maid.getAvailableInv(true);
         boolean success = false;
-        ListIterator<Order> it = orders.listIterator();
         order:
-        while (it.hasNext()) {
-            Order order = it.next();
-            if (order.stage() != Order.Stage.RETRIEVING) continue;
+        for (Order order : manager.getClaimedOrders(maid)) {
+            if (ordersMap.get(order.uuid()) != OrderState.RETRIEVING) continue;
             for (ItemStack targetStack : order.items()) {
                 if (!ItemHandlerUtil.matchesCount(containerInv, stack ->
                         ItemStack.isSameItemSameComponents(stack, targetStack), MinMaxBounds.Ints.atLeast(targetStack.getCount()))) {
@@ -84,11 +86,11 @@ public class MaidWaiterRetrievingTask extends Behavior<EntityMaid> {
                     if (count <= 0) break;
                 }
             }
-            it.set(order.withStage(Order.Stage.DELIVERING));
+            ordersMap.put(order.uuid(), OrderState.DELIVERING);
             success = true;
         }
         if (success) {
-            MaidWorkManager.stopWork(maid);
+            MaidWorkHelper.stopWork(maid);
             maid.swing(InteractionHand.MAIN_HAND);
             level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, maid.getSoundSource(), 1, 1);
         }

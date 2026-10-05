@@ -6,9 +6,10 @@ import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.maid.behavior.brewing.BrewingList;
 import com.winexp.maidtavern.maid.behavior.brewing.BrewingSession;
 import com.winexp.maidtavern.maid.behavior.brewing.StorageBinding;
-import com.winexp.maidtavern.maid.work.Work;
-import com.winexp.maidtavern.maid.behavior.waiter.Order;
+import com.winexp.maidtavern.maid.behavior.waiter.OrderState;
+import com.winexp.maidtavern.logistics.work.Work;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.neoforged.bus.api.IEventBus;
@@ -16,9 +17,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class MaidTavernEntities {
     private static final DeferredRegister<MemoryModuleType<?>> MEMORY_MODULE_TYPES = DeferredRegister.create(BuiltInRegistries.MEMORY_MODULE_TYPE, MaidTavern.MOD_ID);
@@ -36,8 +35,8 @@ public class MaidTavernEntities {
     public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<StorageBinding>> STORAGE_BINDING =
             register("storage_binding", StorageBinding.CODEC);
 
-    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<LinkedList<Order>>> WAITER_ORDERS =
-            register("waiter_orders", Order.CODEC.listOf().xmap(LinkedList::new, List::copyOf));
+    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<HashMap<UUID, OrderState>>> WAITER_ORDERS =
+            register("waiter_orders", Codec.unboundedMap(UUIDUtil.STRING_CODEC, OrderState.CODEC).xmap(HashMap::new, Map::copyOf));
     public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<ImmutableList<BlockPos>>> WAITER_STORAGE_BINDING =
             register("waiter_storage_binding", BlockPos.CODEC.listOf().xmap(ImmutableList::copyOf, List::copyOf));
 

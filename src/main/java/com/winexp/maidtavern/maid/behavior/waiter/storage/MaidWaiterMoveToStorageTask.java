@@ -3,11 +3,13 @@ package com.winexp.maidtavern.maid.behavior.waiter.storage;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
+import com.winexp.maidtavern.logistics.waiter.Order;
+import com.winexp.maidtavern.logistics.waiter.WaiterOrderManager;
 import com.winexp.maidtavern.maid.behavior.core.MaidSurroundingMoveTask;
-import com.winexp.maidtavern.maid.behavior.waiter.Order;
+import com.winexp.maidtavern.maid.behavior.waiter.OrderState;
 import com.winexp.maidtavern.maid.behavior.waiter.WaiterWorkTypes;
-import com.winexp.maidtavern.maid.work.MaidWorkManager;
-import com.winexp.maidtavern.maid.work.Work;
+import com.winexp.maidtavern.logistics.work.MaidWorkHelper;
+import com.winexp.maidtavern.logistics.work.Work;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import com.winexp.maidtavern.util.Utils;
 import net.minecraft.advancements.critereon.MinMaxBounds;
@@ -22,7 +24,8 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 import java.util.List;
-import java.util.ListIterator;
+import java.util.Map;
+import java.util.UUID;
 
 public class MaidWaiterMoveToStorageTask extends MaidSurroundingMoveTask {
     private final float movementSpeed;
@@ -38,33 +41,44 @@ public class MaidWaiterMoveToStorageTask extends MaidSurroundingMoveTask {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
-        Brain<EntityMaid> brain = maid.getBrain();
         if (!super.checkExtraStartConditions(level, maid)) return false;
-        return !MaidWorkManager.isWorking(maid) && brain.hasMemoryValue(MaidTavernEntities.WAITER_ORDERS.get());
+        Brain<EntityMaid> brain = maid.getBrain();
+        WaiterOrderManager manager = WaiterOrderManager.get(level);
+        if (MaidWorkHelper.isWorking(maid)) {
+            return false;
+        }
+        if (manager.getClaimedOrders(maid).isEmpty()) {
+            return manager.tryClaim(maid) != null;
+        }
+        Map<UUID, OrderState> ordersMap = brain.getMemory(MaidTavernEntities.WAITER_ORDERS.get()).get();
+        for (OrderState state : ordersMap.values()) {
+            if (state == OrderState.RETRIEVING) return true;
+        }
+        return false;
     }
 
     @Override
     protected void start(ServerLevel level, EntityMaid maid, long gameTimeIn) {
         searchForDestination(level, maid);
         maid.getBrain().getMemory(InitEntities.TARGET_POS.get()).map(PositionTracker::currentBlockPosition).ifPresent(pos ->
-                MaidWorkManager.startWork(maid, new Work(WaiterWorkTypes.TASK, WaiterWorkTypes.RETRIEVING, pos, movementSpeed, closeEnoughDist)));
+                MaidWorkHelper.startWork(maid, new Work(WaiterWorkTypes.TASK, WaiterWorkTypes.RETRIEVING, pos, movementSpeed, closeEnoughDist)));
     }
 
     @Override
     protected boolean shouldMoveTo(ServerLevel level, EntityMaid maid, BlockPos pos) {
         Brain<EntityMaid> brain = maid.getBrain();
-        List<Order> orders = brain.getMemory(MaidTavernEntities.WAITER_ORDERS.get()).get();
+        WaiterOrderManager manager = WaiterOrderManager.get(level);
+        List<Order> orders = manager.getClaimedOrders(maid);
+        Map<UUID, OrderState> ordersMap = brain.getMemory(MaidTavernEntities.WAITER_ORDERS.get()).get();
         List<BlockPos> storageBinding = brain.getMemory(MaidTavernEntities.WAITER_STORAGE_BINDING.get()).orElse(null);
         if (storageBinding != null && !storageBinding.contains(pos)) return false;
         Container container = Utils.getContainer(level, pos);
         if (container == null) return false;
         IItemHandler containerInv = new InvWrapper(container);
         IItemHandler maidInv = maid.getAvailableInv(true);
-        ListIterator<Order> it = orders.listIterator();
         order:
-        while (it.hasNext()) {
-            Order order = it.next();
-            if (order.stage() != Order.Stage.RETRIEVING) continue;
+        for (Order order : orders) {
+            if (ordersMap.get(order.uuid()) != OrderState.RETRIEVING) continue;
             boolean hasAllItems = true;
             for (ItemStack targetStack : order.items()) {
                 if (!ItemHandlerUtil.matchesCount(maidInv, stack ->
@@ -73,7 +87,7 @@ public class MaidWaiterMoveToStorageTask extends MaidSurroundingMoveTask {
                 }
             }
             if (hasAllItems) {
-                it.set(order.withStage(Order.Stage.DELIVERING));
+                ordersMap.put(order.uuid(), OrderState.DELIVERING);
                 continue;
             }
             for (ItemStack targetStack : order.items()) {

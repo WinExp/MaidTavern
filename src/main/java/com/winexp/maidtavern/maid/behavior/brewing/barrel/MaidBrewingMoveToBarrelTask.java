@@ -9,8 +9,8 @@ import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.behavior.brewing.*;
 import com.winexp.maidtavern.maid.behavior.core.MaidSurroundingMoveTask;
 import com.winexp.maidtavern.maid.behavior.brewing.BrewingWorkTypes;
-import com.winexp.maidtavern.maid.work.MaidWorkManager;
-import com.winexp.maidtavern.maid.work.Work;
+import com.winexp.maidtavern.logistics.work.MaidWorkHelper;
+import com.winexp.maidtavern.logistics.work.Work;
 import com.winexp.maidtavern.util.MaidUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -45,7 +45,7 @@ public class MaidBrewingMoveToBarrelTask extends MaidSurroundingMoveTask {
         selectedEntry = null;
         Brain<EntityMaid> brain = maid.getBrain();
         if (!super.checkExtraStartConditions(level, maid)
-                || MaidWorkManager.isWorking(maid)) return false;
+                || MaidWorkHelper.isWorking(maid)) return false;
         if (brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())) return true;
         BrewingList brewingList = brain.getMemory(MaidTavernEntities.BREWING_LIST.get()).orElse(null);
         if (brewingList == null) return false;
@@ -83,13 +83,13 @@ public class MaidBrewingMoveToBarrelTask extends MaidSurroundingMoveTask {
                 return;
             }
             BehaviorUtils.setWalkAndLookTargetMemories(maid, barrelPos, movementSpeed, 0);
-            MaidWorkManager.startWork(maid, new Work(BrewingWorkTypes.TASK, BrewingWorkTypes.ADD_INGREDIENTS, barrelPos, movementSpeed, closeEnoughDist));
+            MaidWorkHelper.startWork(maid, new Work(BrewingWorkTypes.TASK, BrewingWorkTypes.ADD_INGREDIENTS, barrelPos, movementSpeed, closeEnoughDist));
         } else {
             searchForDestination(level, maid);
             var targetPos = brain.getMemory(InitEntities.TARGET_POS.get());
             targetPos.map(PositionTracker::currentBlockPosition).ifPresent(pos -> {
                 brain.setMemory(MaidTavernEntities.BREWING_SESSION.get(), new BrewingSession(selectedEntry, pos.below(2), BrewingSession.Stage.START_BREWING));
-                MaidWorkManager.startWork(maid, new Work(BrewingWorkTypes.TASK, BrewingWorkTypes.ADD_INGREDIENTS, pos, movementSpeed, closeEnoughDist));
+                MaidWorkHelper.startWork(maid, new Work(BrewingWorkTypes.TASK, BrewingWorkTypes.ADD_INGREDIENTS, pos, movementSpeed, closeEnoughDist));
                 BrewingUtils.addRotationCounter(maid);
             });
         }

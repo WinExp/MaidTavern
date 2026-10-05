@@ -6,8 +6,8 @@ import com.google.common.collect.ImmutableMap;
 import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.config.MaidTavernConfig;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.work.MaidWorkManager;
-import com.winexp.maidtavern.maid.work.Work;
+import com.winexp.maidtavern.logistics.work.MaidWorkHelper;
+import com.winexp.maidtavern.logistics.work.Work;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.Brain;
@@ -39,10 +39,10 @@ public class MaidWorkPreCheckTask extends Behavior<EntityMaid> {
 
     private void validateMemories(EntityMaid maid) {
         Brain<EntityMaid> brain = maid.getBrain();
-        Work work = MaidWorkManager.getWork(maid);
+        Work work = MaidWorkHelper.getWork(maid);
         if (work != null) {
-            if (!MaidWorkManager.isSameWorkTask(maid, work)) {
-                MaidWorkManager.stopWork(maid);
+            if (!MaidWorkHelper.isSameWorkTask(maid, work)) {
+                MaidWorkHelper.stopWork(maid);
                 return;
             }
             brain.eraseMemory(InitEntities.TARGET_POS.get());
@@ -60,20 +60,20 @@ public class MaidWorkPreCheckTask extends Behavior<EntityMaid> {
 
     private void checkWorkExpiration(EntityMaid maid) {
         Brain<EntityMaid> brain = maid.getBrain();
-        Work work = MaidWorkManager.getWork(maid);
+        Work work = MaidWorkHelper.getWork(maid);
         if (work == null) return;
         int time = brain.getMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get()).get() + 1;
         if (time <= MaidTavernConfig.CONFIG.workExpirationTime.getAsInt()) {
             brain.setMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get(), time);
         } else {
-            MaidWorkManager.stopWork(maid);
+            MaidWorkHelper.stopWork(maid);
             MaidTavern.LOGGER.warn("Work {}/{} is stopped accidentally because of expiration", work.task(), work.type());
         }
     }
 
     private void checkWorkPathFinding(EntityMaid maid) {
         Brain<EntityMaid> brain = maid.getBrain();
-        Work work = MaidWorkManager.getWork(maid);
+        Work work = MaidWorkHelper.getWork(maid);
         if (work == null) return;
         BlockPos pos = work.pos();
         if (!work.isCloseEnough(maid)) {
@@ -84,7 +84,7 @@ public class MaidWorkPreCheckTask extends Behavior<EntityMaid> {
                     BehaviorUtils.setWalkAndLookTargetMemories(maid, pos, work.movementSpeed(), 0);
                     brain.setMemory(MaidTavernEntities.PATH_FINDING_ATTEMPT.get(), attempt);
                 } else {
-                    MaidWorkManager.stopWork(maid);
+                    MaidWorkHelper.stopWork(maid);
                     MaidTavern.LOGGER.warn("Work {}/{} is stopped accidentally because of path finding check", work.task(), work.type());
                 }
             }

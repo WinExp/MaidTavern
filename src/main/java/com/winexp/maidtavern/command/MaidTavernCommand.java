@@ -5,16 +5,16 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
+import com.winexp.maidtavern.logistics.waiter.Order;
+import com.winexp.maidtavern.logistics.waiter.WaiterOrderManager;
 import com.winexp.maidtavern.maid.behavior.brewing.BrewingList;
-import com.winexp.maidtavern.maid.behavior.waiter.Order;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.NbtTagArgument;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.server.command.EnumArgument;
-
-import java.util.LinkedList;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -38,26 +38,18 @@ public class MaidTavernCommand {
         return 1;
     }
 
-    private static int order(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int order(CommandContext<CommandSourceStack> context) {
         CommandSourceStack source = context.getSource();
-        if (!(EntityArgument.getEntity(context, "maid") instanceof EntityMaid maid)) {
-            source.sendFailure(Component.literal("选择的实体不是女仆"));
-            return 0;
-        }
-        LinkedList<Order> orders = maid.getBrain().getMemory(MaidTavernEntities.WAITER_ORDERS.get()).orElse(new LinkedList<>());
-        Order order = Order.CODEC.parse(NbtOps.INSTANCE, NbtTagArgument.getNbtTag(context, "order")).getOrThrow();
-        orders.add(order);
-        maid.getBrain().setMemory(MaidTavernEntities.WAITER_ORDERS.get(), orders);
+        WaiterOrderManager manager = WaiterOrderManager.get(source.getLevel());
+        Order order = Order.CODEC_WITHOUT_UUID.parse(NbtOps.INSTANCE, NbtTagArgument.getNbtTag(context, "order")).getOrThrow();
+        manager.order(order);
         return 1;
     }
 
-    private static int orderClear(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int orderClear(CommandContext<CommandSourceStack> context) {
         CommandSourceStack source = context.getSource();
-        if (!(EntityArgument.getEntity(context, "maid") instanceof EntityMaid maid)) {
-            source.sendFailure(Component.literal("选择的实体不是女仆"));
-            return 0;
-        }
-        maid.getBrain().eraseMemory(MaidTavernEntities.WAITER_ORDERS.get());
+        ServerLevel level = source.getLevel();
+        level.getDataStorage().set(WaiterOrderManager.NAME, WaiterOrderManager.factory(level).constructor().get());
         return 1;
     }
 
@@ -77,18 +69,15 @@ public class MaidTavernCommand {
                         .then(
                                 literal("order")
                                         .then(
-                                                argument("maid", EntityArgument.entity())
+                                                literal("add")
                                                         .then(
-                                                                literal("add")
-                                                                        .then(
-                                                                                argument("order", NbtTagArgument.nbtTag())
-                                                                                        .executes(MaidTavernCommand::order)
-                                                                        )
+                                                                argument("order", NbtTagArgument.nbtTag())
+                                                                        .executes(MaidTavernCommand::order)
                                                         )
-                                                        .then(
-                                                                literal("clear")
-                                                                        .executes(MaidTavernCommand::orderClear)
-                                                        )
+                                        )
+                                        .then(
+                                                literal("clear")
+                                                        .executes(MaidTavernCommand::orderClear)
                                         )
                         )
         );

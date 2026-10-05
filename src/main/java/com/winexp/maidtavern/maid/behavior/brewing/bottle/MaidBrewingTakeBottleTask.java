@@ -6,10 +6,10 @@ import com.github.ysbbbbbb.kaleidoscopetavern.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopetavern.util.ItemUtils;
 import com.google.common.collect.ImmutableMap;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.work.Work;
+import com.winexp.maidtavern.logistics.work.Work;
 import com.winexp.maidtavern.maid.behavior.brewing.BrewingWorkTypes;
 import com.winexp.maidtavern.maid.behavior.brewing.IBrewingTask;
-import com.winexp.maidtavern.maid.work.MaidWorkManager;
+import com.winexp.maidtavern.logistics.work.MaidWorkHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -34,13 +34,13 @@ public class MaidBrewingTakeBottleTask extends Behavior<EntityMaid> {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
-        if (!MaidWorkManager.isSameWorkType(maid, BrewingWorkTypes.BOTTLE)) return false;
-        Work work = MaidWorkManager.getWork(maid);
+        if (!MaidWorkHelper.isSameWorkType(maid, BrewingWorkTypes.BOTTLE)) return false;
+        Work work = MaidWorkHelper.getWork(maid);
         BlockPos pos = work.pos();
         if (!task.isBottleValid(maid, pos)) {
             BlockState tapState = level.getBlockState(pos.above());
             if (!tapState.is(ModBlocks.TAP) || !tapState.getValue(TapBlock.OPEN)) {
-                MaidWorkManager.stopWork(maid);
+                MaidWorkHelper.stopWork(maid);
             }
             return false;
         }
@@ -50,7 +50,7 @@ public class MaidBrewingTakeBottleTask extends Behavior<EntityMaid> {
 
     @Override
     protected void start(ServerLevel level, EntityMaid maid, long gameTime) {
-        Work work = MaidWorkManager.getWork(maid);
+        Work work = MaidWorkHelper.getWork(maid);
         BlockPos pos = work.pos();
         BlockState state = level.getBlockState(pos);
         Block.getDrops(state, level, pos, level.getBlockEntity(pos))
@@ -58,6 +58,6 @@ public class MaidBrewingTakeBottleTask extends Behavior<EntityMaid> {
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL);
         maid.swing(InteractionHand.MAIN_HAND);
         level.playSound(null, pos, SoundType.STONE.getPlaceSound(), maid.getSoundSource(), 1.0f, 1.0f);
-        MaidWorkManager.resetWorkExpiration(maid);
+        MaidWorkHelper.resetWorkExpiration(maid);
     }
 }

@@ -24,7 +24,7 @@ import com.winexp.maidtavern.maid.behavior.brewing.common.MaidBrewingPreTickTask
 import com.winexp.maidtavern.maid.behavior.brewing.storage.MaidBrewingMoveToStorageTask;
 import com.winexp.maidtavern.maid.behavior.brewing.storage.MaidBrewingStorageOperationTask;
 import com.winexp.maidtavern.maid.behavior.core.IMaidTaskExt;
-import com.winexp.maidtavern.maid.work.MaidWorkManager;
+import com.winexp.maidtavern.logistics.work.MaidWorkHelper;
 import com.winexp.maidtavern.tag.MaidTavernItemTags;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import it.unimi.dsi.fastutil.objects.ReferenceArraySet;
@@ -85,12 +85,12 @@ public class TaskBrewing implements IBrewingTask, IMaidTaskExt {
 
     @Override
     public boolean enableLookAndRandomWalk(EntityMaid maid) {
-        return !MaidWorkManager.isWorking(maid);
+        return !MaidWorkHelper.isWorking(maid);
     }
 
     @Override
     public boolean enableEating(EntityMaid maid) {
-        return !MaidWorkManager.isWorking(maid);
+        return !MaidWorkHelper.isWorking(maid);
     }
 
     @Override

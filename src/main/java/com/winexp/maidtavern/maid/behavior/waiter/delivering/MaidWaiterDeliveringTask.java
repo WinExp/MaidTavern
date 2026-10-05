@@ -7,10 +7,12 @@ import com.github.ysbbbbbb.kaleidoscopetavern.item.DrinkBlockItem;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.authlib.GameProfile;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.behavior.waiter.Order;
+import com.winexp.maidtavern.logistics.waiter.Order;
+import com.winexp.maidtavern.logistics.waiter.WaiterOrderManager;
+import com.winexp.maidtavern.maid.behavior.waiter.OrderState;
 import com.winexp.maidtavern.maid.behavior.waiter.WaiterWorkTypes;
-import com.winexp.maidtavern.maid.work.MaidWorkManager;
-import com.winexp.maidtavern.maid.work.Work;
+import com.winexp.maidtavern.logistics.work.MaidWorkHelper;
+import com.winexp.maidtavern.logistics.work.Work;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import com.winexp.maidtavern.util.MaidUtil;
 import net.minecraft.advancements.critereon.MinMaxBounds;
@@ -18,6 +20,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -36,13 +39,10 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class MaidWaiterDeliveringTask extends Behavior<EntityMaid> {
-    private static final UUID FAKE_PLAYER_UUID = UUID.randomUUID();
+    private static final UUID FAKE_PLAYER_UUID = Mth.createInsecureUUID();
 
     public MaidWaiterDeliveringTask() {
         super(ImmutableMap.of(
@@ -53,8 +53,8 @@ public class MaidWaiterDeliveringTask extends Behavior<EntityMaid> {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
-        if (!MaidWorkManager.isSameWorkType(maid, WaiterWorkTypes.DELIVERING)) return false;
-        Work work = MaidWorkManager.getWork(maid);
+        if (!MaidWorkHelper.isSameWorkType(maid, WaiterWorkTypes.DELIVERING)) return false;
+        Work work = MaidWorkHelper.getWork(maid);
 
         return work.isCloseEnough(maid);
     }
@@ -62,17 +62,19 @@ public class MaidWaiterDeliveringTask extends Behavior<EntityMaid> {
     @Override
     protected void start(ServerLevel level, EntityMaid maid, long gameTime) {
         Brain<EntityMaid> brain = maid.getBrain();
-        Work work = MaidWorkManager.getWork(maid);
-        List<Order> orders = brain.getMemory(MaidTavernEntities.WAITER_ORDERS.get()).get();
+        Work work = MaidWorkHelper.getWork(maid);
+        WaiterOrderManager manager = WaiterOrderManager.get(level);
+        Map<UUID, OrderState> ordersMap = brain.getMemory(MaidTavernEntities.WAITER_ORDERS.get()).get();
         IItemHandler maidInv = maid.getAvailableInv(true);
         boolean extracted = false;
         boolean placed = false;
         order:
-        for (Order order : orders) {
-            if (order.stage() != Order.Stage.DELIVERING) continue;
+        for (Order order : manager.getClaimedOrders(maid)) {
+            if (ordersMap.get(order.uuid()) != OrderState.DELIVERING) continue;
             if (!order.targetPos().contains(work.pos())) {
                 continue;
             }
+            order.items().removeIf(ItemStack::isEmpty);
             for (ItemStack targetStack : order.items()) {
                 if (!ItemHandlerUtil.matchesCount(maidInv, stack ->
                         ItemStack.isSameItemSameComponents(stack, targetStack), MinMaxBounds.Ints.atLeast(targetStack.getCount()))) {
@@ -81,13 +83,12 @@ public class MaidWaiterDeliveringTask extends Behavior<EntityMaid> {
             }
             List<BlockPos> sortedPos = order.targetPos().stream().sorted(Comparator.comparingDouble(blockPos ->
                     maid.distanceToSqr(blockPos.getCenter()))).toList();
-            order.items().removeIf(ItemStack::isEmpty);
             for (BlockPos pos : sortedPos) {
                 if (maid.distanceToSqr(pos.getCenter()) > Math.pow(work.closeEnoughDist(), 2)) {
-                    MaidWorkManager.stopWork(maid);
+                    MaidWorkHelper.stopWork(maid);
                     if (!order.items().isEmpty()) {
                         BehaviorUtils.setWalkAndLookTargetMemories(maid, pos, work.movementSpeed(), 0);
-                        MaidWorkManager.startWork(maid, new Work(WaiterWorkTypes.TASK, WaiterWorkTypes.DELIVERING, pos, work.movementSpeed(), work.closeEnoughDist()));
+                        MaidWorkHelper.startWork(maid, new Work(WaiterWorkTypes.TASK, WaiterWorkTypes.DELIVERING, pos, work.movementSpeed(), work.closeEnoughDist()));
                     }
                     return;
                 }
@@ -130,7 +131,8 @@ public class MaidWaiterDeliveringTask extends Behavior<EntityMaid> {
                     level.addFreshEntity(itemEntity);
                 }
             }
-            MaidWorkManager.stopWork(maid);
+            manager.unorder(order.uuid());
+            MaidWorkHelper.stopWork(maid);
             if (extracted) {
                 maid.playSound(SoundEvents.ITEM_FRAME_REMOVE_ITEM, 1, 1);
             }

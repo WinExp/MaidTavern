@@ -3,10 +3,10 @@ package com.winexp.maidtavern.maid.behavior.brewing.bottle;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.work.Work;
+import com.winexp.maidtavern.logistics.work.Work;
 import com.winexp.maidtavern.maid.behavior.brewing.BrewingWorkTypes;
 import com.winexp.maidtavern.maid.behavior.brewing.IBrewingTask;
-import com.winexp.maidtavern.maid.work.MaidWorkManager;
+import com.winexp.maidtavern.logistics.work.MaidWorkHelper;
 import com.winexp.maidtavern.maid.behavior.core.MaidSurroundingMoveTask;
 import com.winexp.maidtavern.util.MaidUtil;
 import net.minecraft.core.BlockPos;
@@ -31,7 +31,7 @@ public class MaidBrewingMoveToBottleTask extends MaidSurroundingMoveTask {
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
         Brain<EntityMaid> brain = maid.getBrain();
         return super.checkExtraStartConditions(level, maid)
-                && !MaidWorkManager.isWorking(maid)
+                && !MaidWorkHelper.isWorking(maid)
                 && !brain.hasMemoryValue(MaidTavernEntities.BREWING_SESSION.get())
                 && brain.hasMemoryValue(MaidTavernEntities.BREWING_LIST.get());
     }
@@ -41,7 +41,7 @@ public class MaidBrewingMoveToBottleTask extends MaidSurroundingMoveTask {
         searchForDestination(level, maid);
         Brain<EntityMaid> brain = maid.getBrain();
         brain.getMemory(InitEntities.TARGET_POS.get()).map(PositionTracker::currentBlockPosition).ifPresent(targetPos ->
-                MaidWorkManager.startWork(maid, new Work(BrewingWorkTypes.TASK, BrewingWorkTypes.BOTTLE, targetPos, movementSpeed, closeEnoughDist)));
+                MaidWorkHelper.startWork(maid, new Work(BrewingWorkTypes.TASK, BrewingWorkTypes.BOTTLE, targetPos, movementSpeed, closeEnoughDist)));
     }
 
     @Override

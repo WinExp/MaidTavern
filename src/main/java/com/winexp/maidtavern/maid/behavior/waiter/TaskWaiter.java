@@ -11,7 +11,7 @@ import com.winexp.maidtavern.maid.behavior.waiter.delivering.MaidWaiterDeliverin
 import com.winexp.maidtavern.maid.behavior.waiter.delivering.MaidWaiterMoveToTargetTask;
 import com.winexp.maidtavern.maid.behavior.waiter.storage.MaidWaiterMoveToStorageTask;
 import com.winexp.maidtavern.maid.behavior.waiter.storage.MaidWaiterRetrievingTask;
-import com.winexp.maidtavern.maid.work.MaidWorkManager;
+import com.winexp.maidtavern.logistics.work.MaidWorkHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
@@ -52,12 +52,12 @@ public class TaskWaiter implements IMaidTaskExt {
 
     @Override
     public boolean enableLookAndRandomWalk(EntityMaid maid) {
-        return !MaidWorkManager.isWorking(maid);
+        return !MaidWorkHelper.isWorking(maid);
     }
 
     @Override
     public boolean enableEating(EntityMaid maid) {
-        return !MaidWorkManager.isWorking(maid);
+        return !MaidWorkHelper.isWorking(maid);
     }
 
     @Override

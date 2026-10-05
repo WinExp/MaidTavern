@@ -8,8 +8,8 @@ import com.google.common.collect.ImmutableMap;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.behavior.brewing.*;
 import com.winexp.maidtavern.maid.behavior.brewing.BrewingWorkTypes;
-import com.winexp.maidtavern.maid.work.MaidWorkManager;
-import com.winexp.maidtavern.maid.work.Work;
+import com.winexp.maidtavern.logistics.work.MaidWorkHelper;
+import com.winexp.maidtavern.logistics.work.Work;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -40,8 +40,8 @@ public class MaidBrewingAddIngredientsTask extends Behavior<EntityMaid> {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
-        if (!MaidWorkManager.isSameWorkType(maid, BrewingWorkTypes.ADD_INGREDIENTS)) return false;
-        Work work = MaidWorkManager.getWork(maid);
+        if (!MaidWorkHelper.isSameWorkType(maid, BrewingWorkTypes.ADD_INGREDIENTS)) return false;
+        Work work = MaidWorkHelper.getWork(maid);
         BrewingSession session = getSession(maid);
         if (!session.stage().isBrewing()) {
             stop(maid);
@@ -126,7 +126,7 @@ public class MaidBrewingAddIngredientsTask extends Behavior<EntityMaid> {
         if (cooldown > 0) {
             maid.swing(InteractionHand.MAIN_HAND);
         }
-        MaidWorkManager.resetWorkExpiration(maid);
+        MaidWorkHelper.resetWorkExpiration(maid);
     }
 
     private @Nullable BrewingSession getSession(EntityMaid maid) {
@@ -152,7 +152,7 @@ public class MaidBrewingAddIngredientsTask extends Behavior<EntityMaid> {
     }
 
     private void stop(EntityMaid maid) {
-        MaidWorkManager.stopWork(maid);
+        MaidWorkHelper.stopWork(maid);
         clearSession(maid);
     }
 }

@@ -7,13 +7,14 @@ import com.github.ysbbbbbb.kaleidoscopetavern.init.ModItems;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.authlib.GameProfile;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
-import com.winexp.maidtavern.maid.work.Work;
+import com.winexp.maidtavern.logistics.work.Work;
 import com.winexp.maidtavern.maid.behavior.brewing.BrewingWorkTypes;
 import com.winexp.maidtavern.maid.behavior.brewing.IBrewingTask;
-import com.winexp.maidtavern.maid.work.MaidWorkManager;
+import com.winexp.maidtavern.logistics.work.MaidWorkHelper;
 import com.winexp.maidtavern.util.ItemHandlerUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
@@ -25,7 +26,7 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import java.util.UUID;
 
 public class MaidBrewingPlaceBottleTask extends Behavior<EntityMaid> {
-    private static final UUID FAKE_PLAYER_UUID = UUID.randomUUID();
+    private static final UUID FAKE_PLAYER_UUID = Mth.createInsecureUUID();
     private final IBrewingTask task;
 
     public MaidBrewingPlaceBottleTask(IBrewingTask task) {
@@ -39,8 +40,8 @@ public class MaidBrewingPlaceBottleTask extends Behavior<EntityMaid> {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, EntityMaid maid) {
-        if (!MaidWorkManager.isSameWorkType(maid, BrewingWorkTypes.BOTTLE)) return false;
-        Work work = MaidWorkManager.getWork(maid);
+        if (!MaidWorkHelper.isSameWorkType(maid, BrewingWorkTypes.BOTTLE)) return false;
+        Work work = MaidWorkHelper.getWork(maid);
         BlockPos pos = work.pos();
         if (!task.shouldPlaceBottle(maid, pos)) {
             return false;
@@ -51,7 +52,7 @@ public class MaidBrewingPlaceBottleTask extends Behavior<EntityMaid> {
 
     @Override
     protected void start(ServerLevel level, EntityMaid maid, long gameTime) {
-        Work work = MaidWorkManager.getWork(maid);
+        Work work = MaidWorkHelper.getWork(maid);
         BlockPos pos = work.pos();
         ItemStack bottleStack = ItemHandlerUtil.findStack(maid.getAvailableInv(true), stack ->
                 stack.is(ModItems.EMPTY_BOTTLE));
@@ -62,6 +63,6 @@ public class MaidBrewingPlaceBottleTask extends Behavior<EntityMaid> {
         FakePlayer fakePlayer = new FakePlayer(level, new GameProfile(FAKE_PLAYER_UUID, "Arm"));
         ((TapBlock) ModBlocks.TAP.get()).useItemOn(ItemStack.EMPTY, tapState, level, pos.above(), fakePlayer, InteractionHand.MAIN_HAND, null);
         maid.swing(InteractionHand.MAIN_HAND);
-        MaidWorkManager.resetWorkExpiration(maid);
+        MaidWorkHelper.resetWorkExpiration(maid);
     }
 }
