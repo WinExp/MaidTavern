@@ -14,6 +14,7 @@ public class ModifyCreativeModeTabs {
             event.accept(MaidTavernItems.BREWING_LIST);
             event.accept(MaidTavernItems.STORAGE_BINDING_TOOL);
             event.accept(MaidTavernItems.BARREL_SELECTION_TOOL);
+            event.accept(MaidTavernItems.ORDER_MENU);
         }
     }
 }

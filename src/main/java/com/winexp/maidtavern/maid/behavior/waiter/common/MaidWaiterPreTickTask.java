@@ -24,6 +24,7 @@ public class MaidWaiterPreTickTask extends Behavior<EntityMaid> {
     protected void start(ServerLevel level, EntityMaid maid, long gameTime) {
         Brain<EntityMaid> brain = maid.getBrain();
         WaiterOrderManager manager = WaiterOrderManager.get(level);
+        manager.tryClaim(maid);
         HashMap<UUID, OrderState> ordersMap = brain.getMemory(MaidTavernEntities.WAITER_ORDERS.get()).orElse(null);
         if (ordersMap != null && !ordersMap.isEmpty()) {
             for (UUID uuid : ordersMap.keySet()) {

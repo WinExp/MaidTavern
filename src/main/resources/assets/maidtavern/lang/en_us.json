@@ -2,6 +2,7 @@
   "config.maidtavern.enable_drinking": "Enable drinking",
   "config.maidtavern.path_finding_attempt": "Path finding attempt",
   "config.maidtavern.work_expiration_time": "Work expiration time",
+  "config.maidtavern.order_expiration_time": "Order expiration time",
   "task.maidtavern.grape": "Harvest grape",
   "task.maidtavern.grape.desc": "Maid will harvest grape around",
   "task.maidtavern.grape.condition.has_shears": "Mainhand holds a shear (the grape will drop additionally)",

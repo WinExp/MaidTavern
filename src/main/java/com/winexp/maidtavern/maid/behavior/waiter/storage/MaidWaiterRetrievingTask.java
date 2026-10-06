@@ -90,9 +90,9 @@ public class MaidWaiterRetrievingTask extends Behavior<EntityMaid> {
             success = true;
         }
         if (success) {
-            MaidWorkHelper.stopWork(maid);
             maid.swing(InteractionHand.MAIN_HAND);
             level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, maid.getSoundSource(), 1, 1);
         }
+        MaidWorkHelper.stopWork(maid);
     }
 }

@@ -3,6 +3,7 @@ package com.winexp.maidtavern.logistics.waiter;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import com.winexp.maidtavern.config.MaidTavernConfig;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.behavior.waiter.OrderState;
 import com.winexp.maidtavern.maid.behavior.waiter.TaskWaiter;
@@ -16,13 +17,17 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class WaiterOrderManager extends SavedData {
     public static final String NAME = "waiter_order_manager";
 
     private final ServerLevel level;
     private final Map<UUID, Order> orders = new HashMap<>();
+    private final Map<UUID, Integer> aliveTimeMap = new HashMap<>();
     private final Map<UUID, EntityMaid> claimerMap = new HashMap<>();
     private final Multimap<EntityMaid, UUID> claimedMap = LinkedHashMultimap.create();
 
@@ -42,8 +47,16 @@ public class WaiterOrderManager extends SavedData {
         for (Order order : List.copyOf(orders.values())) {
             if (order.items().isEmpty()) {
                 unorder(order.uuid());
+                continue;
             } else if (order.targetPos().isEmpty()) {
                 unorder(order.uuid());
+                continue;
+            }
+            if (!isClaimed(order.uuid())) {
+                int aliveTime = aliveTimeMap.put(order.uuid(), aliveTimeMap.get(order.uuid()) - 1);
+                if (aliveTime <= 0) {
+                    unorder(order.uuid());
+                }
             }
         }
         for (EntityMaid claimer : List.copyOf(claimedMap.keySet())) {
@@ -85,6 +98,7 @@ public class WaiterOrderManager extends SavedData {
     public void order(Order order) {
         if (isOrdered(order.uuid())) return;
         orders.put(order.uuid(), order);
+        aliveTimeMap.put(order.uuid(), MaidTavernConfig.CONFIG.orderAliveTime.getAsInt());
         setDirty();
     }
 
@@ -92,6 +106,7 @@ public class WaiterOrderManager extends SavedData {
         if (!isOrdered(order)) return;
         unclaim(order);
         orders.remove(order);
+        aliveTimeMap.remove(order);
         setDirty();
     }
 
@@ -169,8 +184,8 @@ public class WaiterOrderManager extends SavedData {
         ListTag ordersTag = tag.getList("orders", Tag.TAG_COMPOUND);
         for (Tag orderTag : ordersTag) {
             Order.CODEC.parse(NbtOps.INSTANCE, orderTag).result().ifPresent(order -> {
-                if (manager.orders.containsKey(order.uuid())) return;
-                manager.orders.put(order.uuid(), order);
+                if (manager.isOrdered(order.uuid())) return;
+                manager.order(order);
             });
         }
         return manager;

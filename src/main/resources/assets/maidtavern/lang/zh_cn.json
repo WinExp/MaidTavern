@@ -2,6 +2,7 @@
   "config.maidtavern.enable_drinking": "启用偷喝",
   "config.maidtavern.path_finding_attempt": "寻路尝试次数",
   "config.maidtavern.work_expiration_time": "工作过期时长",
+  "config.maidtavern.order_expiration_time": "订单过期时长",
   "task.maidtavern.grape": "采收葡萄",
   "task.maidtavern.grape.desc": "女仆会主动采收附近的葡萄",
   "task.maidtavern.grape.condition.has_shears": "主手持有剪刀时，能够额外掉落",

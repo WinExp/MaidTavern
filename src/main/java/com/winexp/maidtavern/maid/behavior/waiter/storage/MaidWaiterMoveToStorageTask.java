@@ -23,13 +23,12 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class MaidWaiterMoveToStorageTask extends MaidSurroundingMoveTask {
     private final float movementSpeed;
     private final double closeEnoughDist;
+    private final List<UUID> canRetrieveOrders = new ArrayList<>();
 
     public MaidWaiterMoveToStorageTask(float movementSpeed, int verticalSearchRange, double closeEnoughDist, int minCheckTime) {
         super(movementSpeed, verticalSearchRange);
@@ -48,7 +47,7 @@ public class MaidWaiterMoveToStorageTask extends MaidSurroundingMoveTask {
             return false;
         }
         if (manager.getClaimedOrders(maid).isEmpty()) {
-            return manager.tryClaim(maid) != null;
+            return false;
         }
         Map<UUID, OrderState> ordersMap = brain.getMemory(MaidTavernEntities.WAITER_ORDERS.get()).get();
         for (OrderState state : ordersMap.values()) {
@@ -59,7 +58,14 @@ public class MaidWaiterMoveToStorageTask extends MaidSurroundingMoveTask {
 
     @Override
     protected void start(ServerLevel level, EntityMaid maid, long gameTimeIn) {
+        canRetrieveOrders.clear();
+        WaiterOrderManager manager = WaiterOrderManager.get(level);
         searchForDestination(level, maid);
+        for (Order order : manager.getClaimedOrders(maid)) {
+            if (!canRetrieveOrders.contains(order.uuid())) {
+                manager.unclaim(order.uuid());
+            }
+        }
         maid.getBrain().getMemory(InitEntities.TARGET_POS.get()).map(PositionTracker::currentBlockPosition).ifPresent(pos ->
                 MaidWorkHelper.startWork(maid, new Work(WaiterWorkTypes.TASK, WaiterWorkTypes.RETRIEVING, pos, movementSpeed, closeEnoughDist)));
     }
@@ -99,6 +105,7 @@ public class MaidWaiterMoveToStorageTask extends MaidSurroundingMoveTask {
             if (!ItemHandlerUtil.canInsertAll(maidInv, order.items())) {
                 continue;
             }
+            canRetrieveOrders.add(order.uuid());
             return true;
         }
         return false;

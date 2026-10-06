@@ -58,6 +58,7 @@ public class MaidTavernCommand {
                 literal("maidtavern")
                         .then(
                                 literal("order_policy")
+                                        .requires(source -> source.hasPermission(2))
                                         .then(
                                                 argument("maid", EntityArgument.entity())
                                                         .then(
@@ -68,6 +69,7 @@ public class MaidTavernCommand {
                         )
                         .then(
                                 literal("order")
+                                        .requires(source -> source.hasPermission(2))
                                         .then(
                                                 literal("add")
                                                         .then(

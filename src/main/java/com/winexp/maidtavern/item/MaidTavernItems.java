@@ -59,6 +59,11 @@ public class MaidTavernItems {
                             .component(BARREL_POSITIONS_DATA, ImmutableSet.of())
                             .stacksTo(1)));
 
+    public static final DeferredItem<OrderMenuItem> ORDER_MENU = ITEMS
+            .register("order_menu", () ->
+                    new OrderMenuItem(new Item.Properties()
+                            .stacksTo(1)));
+
     public static void register(IEventBus modEventBus) {
         ITEMS.register(modEventBus);
         DATA_COMPONENTS.register(modEventBus);

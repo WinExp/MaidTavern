@@ -10,6 +10,7 @@ public class MaidTavernConfig {
     public final ModConfigSpec.BooleanValue enableDrinking;
     public final ModConfigSpec.IntValue pathFindingAttempt;
     public final ModConfigSpec.IntValue workExpirationTime;
+    public final ModConfigSpec.IntValue orderAliveTime;
 
     static {
         Pair<MaidTavernConfig, ModConfigSpec> pair = new ModConfigSpec.Builder().configure(MaidTavernConfig::new);
@@ -26,6 +27,9 @@ public class MaidTavernConfig {
                 .defineInRange("path_finding_attempt", 4, 1, 10);
         workExpirationTime = builder
                 .translation("config.maidtavern.work_expiration_time")
-                .defineInRange("work_expiration_time", 300, 200, Integer.MAX_VALUE);
+                .defineInRange("work_expiration_time", 300, 200, 600);
+        orderAliveTime = builder
+                .translation("config.maidtavern.order_expiration_time")
+                .defineInRange("order_expiration_time", 300, 200, 600);
     }
 }

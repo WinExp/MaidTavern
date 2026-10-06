@@ -132,14 +132,13 @@ public class MaidWaiterDeliveringTask extends Behavior<EntityMaid> {
                 }
             }
             manager.unorder(order.uuid());
-            MaidWorkHelper.stopWork(maid);
-            if (extracted) {
-                maid.playSound(SoundEvents.ITEM_FRAME_REMOVE_ITEM, 1, 1);
-            }
-            if (extracted || placed) {
-                maid.swing(InteractionHand.MAIN_HAND);
-            }
-            break;
+        }
+        MaidWorkHelper.stopWork(maid);
+        if (extracted) {
+            maid.playSound(SoundEvents.ITEM_FRAME_REMOVE_ITEM, 1, 1);
+        }
+        if (extracted || placed) {
+            maid.swing(InteractionHand.MAIN_HAND);
         }
     }
 

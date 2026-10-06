@@ -62,12 +62,16 @@ public class MaidWorkPreCheckTask extends Behavior<EntityMaid> {
         Brain<EntityMaid> brain = maid.getBrain();
         Work work = MaidWorkHelper.getWork(maid);
         if (work == null) return;
-        int time = brain.getMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get()).get() + 1;
-        if (time <= MaidTavernConfig.CONFIG.workExpirationTime.getAsInt()) {
-            brain.setMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get(), time);
-        } else {
-            MaidWorkHelper.stopWork(maid);
-            MaidTavern.LOGGER.warn("Work {}/{} is stopped accidentally because of expiration", work.task(), work.type());
+        BlockPos pos = work.pos();
+        Optional<WalkTarget> walkTarget = brain.getMemory(MemoryModuleType.WALK_TARGET);
+        if (walkTarget.isEmpty() || !walkTarget.get().getTarget().currentPosition().equals(pos.getCenter())) {
+            int time = brain.getMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get()).get() + 1;
+            if (time <= MaidTavernConfig.CONFIG.workExpirationTime.getAsInt()) {
+                brain.setMemory(MaidTavernEntities.WORK_EXPIRATION_TIME.get(), time);
+            } else {
+                MaidWorkHelper.stopWork(maid);
+                MaidTavern.LOGGER.warn("Work {}/{} is stopped accidentally because of expiration", work.task(), work.type());
+            }
         }
     }
 
