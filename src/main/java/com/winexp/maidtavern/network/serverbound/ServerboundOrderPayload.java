@@ -3,11 +3,11 @@ package com.winexp.maidtavern.network.serverbound;
 import com.winexp.maidtavern.MaidTavern;
 import com.winexp.maidtavern.logistics.waiter.Order;
 import com.winexp.maidtavern.logistics.waiter.WaiterOrderManager;
-import com.winexp.maidtavern.network.clientbound.ClientboundOrderedPayload;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ServerboundOrderPayload(Order order) implements CustomPacketPayload {
@@ -24,8 +24,8 @@ public record ServerboundOrderPayload(Order order) implements CustomPacketPayloa
     }
 
     public void handle(IPayloadContext context) {
-        ServerLevel level = (ServerLevel) context.player().level();
-        WaiterOrderManager.get(level).order(order);
-        context.reply(new ClientboundOrderedPayload(order.uuid()));
+        ServerPlayer player = (ServerPlayer) context.player();
+        ServerLevel level = player.serverLevel();
+        WaiterOrderManager.get(level).order(order, player.getUUID());
     }
 }

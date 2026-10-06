@@ -36,7 +36,7 @@ public class OrderMenuScreen extends Screen {
 
     private void testButtonClicked(Button button) {
         ItemStack stack = ModItems.WINE.toStack();
-        stack.set(ModDataComponents.BREW_LEVEL, 6);
+        stack.set(ModDataComponents.BREW_LEVEL, 5);
         Minecraft.getInstance().getConnection().send(new ServerboundOrderPayload(new Order(List.of(stack), List.of(
                 new BlockPos(-14, -59, 22),
                 new BlockPos(-15, -59, 22),

@@ -13,18 +13,37 @@ import net.minecraft.world.entity.ai.behavior.Behavior;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class MaidWaiterPreTickTask extends Behavior<EntityMaid> {
-    public MaidWaiterPreTickTask() {
+    private final int claimCooldown;
+    private final Map<UUID, Integer> claimCooldownMap = new HashMap<>();
+
+    public MaidWaiterPreTickTask(int claimCooldown) {
         super(ImmutableMap.of());
+        this.claimCooldown = claimCooldown;
     }
 
     @Override
     protected void start(ServerLevel level, EntityMaid maid, long gameTime) {
         Brain<EntityMaid> brain = maid.getBrain();
         WaiterOrderManager manager = WaiterOrderManager.get(level);
-        manager.tryClaim(maid);
+        for (Map.Entry<UUID, Integer> entry : List.copyOf(claimCooldownMap.entrySet())) {
+            if (entry.getValue() <= 0) {
+                claimCooldownMap.remove(entry.getKey());
+            } else {
+                entry.setValue(entry.getValue() - 1);
+            }
+        }
+        Order claimedOrder = manager.tryClaim(maid);
+        if (claimedOrder != null) {
+            if (claimCooldownMap.containsKey(claimedOrder.uuid())) {
+                manager.unclaim(claimedOrder.uuid());
+            } else {
+                claimCooldownMap.put(claimedOrder.uuid(), claimCooldown);
+            }
+        }
         HashMap<UUID, OrderState> ordersMap = brain.getMemory(MaidTavernEntities.WAITER_ORDERS.get()).orElse(null);
         if (ordersMap != null && !ordersMap.isEmpty()) {
             for (UUID uuid : ordersMap.keySet()) {

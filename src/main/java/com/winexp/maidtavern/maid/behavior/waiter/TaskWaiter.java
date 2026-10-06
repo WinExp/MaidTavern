@@ -42,7 +42,7 @@ public class TaskWaiter implements IMaidTaskExt {
     @Override
     public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(EntityMaid maid) {
         return Lists.newArrayList(
-                Pair.of(Integer.MIN_VALUE, new MaidWaiterPreTickTask()),
+                Pair.of(Integer.MIN_VALUE, new MaidWaiterPreTickTask(80)),
                 Pair.of(5, new MaidWaiterMoveToStorageTask(0.45f, 4, 3, 20)),
                 Pair.of(5, new MaidWaiterRetrievingTask()),
                 Pair.of(5, new MaidWaiterMoveToTargetTask(0.45f, 3, 20)),

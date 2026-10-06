@@ -14,7 +14,10 @@ import net.minecraft.commands.arguments.NbtTagArgument;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.server.command.EnumArgument;
+
+import java.util.UUID;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -40,9 +43,11 @@ public class MaidTavernCommand {
 
     private static int order(CommandContext<CommandSourceStack> context) {
         CommandSourceStack source = context.getSource();
+        ServerPlayer player = source.getPlayer();
+        UUID uuid = player == null ? null : player.getUUID();
         WaiterOrderManager manager = WaiterOrderManager.get(source.getLevel());
         Order order = Order.CODEC_WITHOUT_UUID.parse(NbtOps.INSTANCE, NbtTagArgument.getNbtTag(context, "order")).getOrThrow();
-        manager.order(order);
+        manager.order(order, uuid);
         return 1;
     }
 

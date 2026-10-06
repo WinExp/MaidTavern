@@ -1,6 +1,7 @@
 package com.winexp.maidtavern.event;
 
 import com.winexp.maidtavern.network.clientbound.ClientboundOrderedPayload;
+import com.winexp.maidtavern.network.clientbound.ClientboundUnorderedPayload;
 import com.winexp.maidtavern.network.serverbound.ServerboundOrderPayload;
 import com.winexp.maidtavern.network.serverbound.ServerboundSetBrewingListPayload;
 import com.winexp.maidtavern.network.serverbound.ServerboundSetStorageBindingTypePayload;
@@ -19,5 +20,6 @@ public class RegisterPayloads {
         registrar.playToServer(ServerboundOrderPayload.TYPE, ServerboundOrderPayload.STREAM_CODEC, ServerboundOrderPayload::handle);
 
         registrar.playToClient(ClientboundOrderedPayload.TYPE, ClientboundOrderedPayload.STREAM_CODEC, ClientboundOrderedPayload::handle);
+        registrar.playToClient(ClientboundUnorderedPayload.TYPE, ClientboundUnorderedPayload.STREAM_CODEC, ClientboundUnorderedPayload::handle);
     }
 }

@@ -131,7 +131,7 @@ public class MaidWaiterDeliveringTask extends Behavior<EntityMaid> {
                     level.addFreshEntity(itemEntity);
                 }
             }
-            manager.unorder(order.uuid());
+            manager.unorder(order.uuid(), WaiterOrderManager.UnorderReason.DONE);
         }
         MaidWorkHelper.stopWork(maid);
         if (extracted) {

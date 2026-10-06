@@ -7,26 +7,31 @@ import com.winexp.maidtavern.config.MaidTavernConfig;
 import com.winexp.maidtavern.entity.MaidTavernEntities;
 import com.winexp.maidtavern.maid.behavior.waiter.OrderState;
 import com.winexp.maidtavern.maid.behavior.waiter.TaskWaiter;
+import com.winexp.maidtavern.network.clientbound.ClientboundOrderedPayload;
+import com.winexp.maidtavern.network.clientbound.ClientboundUnorderedPayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class WaiterOrderManager extends SavedData {
     public static final String NAME = "waiter_order_manager";
 
     private final ServerLevel level;
     private final Map<UUID, Order> orders = new HashMap<>();
+    private final Map<UUID, Order> originalOrders = new HashMap<>();
+    private final Map<UUID, UUID> orderTrackerMap = new HashMap<>();
     private final Map<UUID, Integer> aliveTimeMap = new HashMap<>();
     private final Map<UUID, EntityMaid> claimerMap = new HashMap<>();
     private final Multimap<EntityMaid, UUID> claimedMap = LinkedHashMultimap.create();
@@ -46,16 +51,16 @@ public class WaiterOrderManager extends SavedData {
     public void tick() {
         for (Order order : List.copyOf(orders.values())) {
             if (order.items().isEmpty()) {
-                unorder(order.uuid());
+                unorder(order.uuid(), UnorderReason.INVALID);
                 continue;
             } else if (order.targetPos().isEmpty()) {
-                unorder(order.uuid());
+                unorder(order.uuid(), UnorderReason.INVALID);
                 continue;
             }
             if (!isClaimed(order.uuid())) {
                 int aliveTime = aliveTimeMap.put(order.uuid(), aliveTimeMap.get(order.uuid()) - 1);
                 if (aliveTime <= 0) {
-                    unorder(order.uuid());
+                    unorder(order.uuid(), UnorderReason.EXPIRED);
                 }
             }
         }
@@ -91,27 +96,54 @@ public class WaiterOrderManager extends SavedData {
         return orders.get(uuid);
     }
 
+    public @Nullable Order getOriginalOrder(UUID uuid) {
+        return originalOrders.get(uuid);
+    }
+
+    public @Nullable UUID getTracker(UUID order) {
+        if (!isOrdered(order)) throw new IllegalArgumentException();
+        return orderTrackerMap.get(order);
+    }
+
+    public @Nullable ServerPlayer getTrackerPlayer(UUID order) {
+        UUID playerUuid = getTracker(order);
+        if (playerUuid == null) return null;
+        return level.getServer().getPlayerList().getPlayer(playerUuid);
+    }
+
     public List<Order> getOrders() {
         return List.copyOf(orders.values());
     }
 
-    public void order(Order order) {
+    public void order(Order order, @Nullable UUID player) {
         if (isOrdered(order.uuid())) return;
         orders.put(order.uuid(), order);
+        originalOrders.put(order.uuid(), order);
+        orderTrackerMap.put(order.uuid(), player);
         aliveTimeMap.put(order.uuid(), MaidTavernConfig.CONFIG.orderAliveTime.getAsInt());
+        ServerPlayer tracker = getTrackerPlayer(order.uuid());
+        if (tracker != null) {
+            tracker.connection.send(new ClientboundOrderedPayload(order));
+        }
         setDirty();
     }
 
-    public void unorder(UUID order) {
+    public void unorder(UUID order, UnorderReason reason) {
         if (!isOrdered(order)) return;
         unclaim(order);
+        ServerPlayer tracker = getTrackerPlayer(order);
+        if (tracker != null) {
+            tracker.connection.send(new ClientboundUnorderedPayload(originalOrders.get(order), reason));
+        }
         orders.remove(order);
+        originalOrders.remove(order);
+        orderTrackerMap.remove(order);
         aliveTimeMap.remove(order);
         setDirty();
     }
 
     public boolean isClaimed(UUID order) {
-        if (!isOrdered(order)) throw new IllegalStateException();
+        if (!isOrdered(order)) throw new IllegalArgumentException();
         return claimerMap.containsKey(order);
     }
 
@@ -129,7 +161,7 @@ public class WaiterOrderManager extends SavedData {
     }
 
     public @Nullable Order tryClaim(EntityMaid maid) {
-        if (!(maid.getTask() instanceof TaskWaiter)) throw new IllegalStateException();
+        if (!(maid.getTask() instanceof TaskWaiter)) throw new IllegalArgumentException();
         else if (orders.isEmpty()) return null;
         orders:
         for (Order order : orders.values()) {
@@ -145,7 +177,7 @@ public class WaiterOrderManager extends SavedData {
     }
 
     public void claim(EntityMaid claimer, UUID order) {
-        if (!isOrdered(order)) throw new IllegalStateException();
+        if (!isOrdered(order)) throw new IllegalArgumentException();
         else if (isClaimed(order)) return;
         claimedMap.put(claimer, order);
         claimerMap.put(order, claimer);
@@ -159,7 +191,7 @@ public class WaiterOrderManager extends SavedData {
     }
 
     public void unclaim(UUID order) {
-        if (!isOrdered(order)) throw new IllegalStateException();
+        if (!isOrdered(order)) throw new IllegalArgumentException();
         else if (!isClaimed(order)) return;
         EntityMaid claimer = getClaimer(order);
         claimedMap.remove(claimer, order);
@@ -176,6 +208,11 @@ public class WaiterOrderManager extends SavedData {
             ordersTag.add(orderTag);
         }
         tag.put("orders", ordersTag);
+        CompoundTag trackersTag = new CompoundTag();
+        for (Map.Entry<UUID, UUID> entry : orderTrackerMap.entrySet()) {
+            trackersTag.putUUID(entry.getKey().toString(), entry.getValue());
+        }
+        tag.put("trackers", trackersTag);
         return tag;
     }
 
@@ -185,9 +222,27 @@ public class WaiterOrderManager extends SavedData {
         for (Tag orderTag : ordersTag) {
             Order.CODEC.parse(NbtOps.INSTANCE, orderTag).result().ifPresent(order -> {
                 if (manager.isOrdered(order.uuid())) return;
-                manager.order(order);
+                manager.order(order, null);
             });
         }
+        CompoundTag trackersTag = tag.getCompound("trackers");
+        for (String orderUuid : trackersTag.getAllKeys()) {
+            try {
+                if (!trackersTag.hasUUID(orderUuid)) continue;
+                UUID order = UUID.fromString(orderUuid);
+                if (!manager.isOrdered(order)) continue;
+                UUID tracker = trackersTag.getUUID(orderUuid);
+                manager.orderTrackerMap.put(order, tracker);
+            } catch (IllegalArgumentException ignored) {}
+        }
         return manager;
+    }
+
+    public enum UnorderReason {
+        INVALID,
+        EXPIRED,
+        DONE;
+
+        public static final StreamCodec<FriendlyByteBuf, UnorderReason> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(UnorderReason.class);
     }
 }
